@@ -90,7 +90,7 @@ do
         pv > "$appout/data.tar.zst.enc"
 
     # Permissions
-    msg "    • Other (permissions, SSAID)"
+    msg "    • Other (permissions, SSAID, battery optimization)"
     grep "granted=true, flags=" <<< "$appinfo" | \
         sed 's/^\s*\(.*\): granted.*$/\1/g' > "$appout/permissions.list" \
         || true
@@ -98,6 +98,11 @@ do
     # SSAID
     if grep -q 'package="'"$app"'"' /data/system/users/0/settings_ssaid.xml; then
         grep 'package="'"$app"'"' /data/system/users/0/settings_ssaid.xml > "$appout/ssaid.xml"
+    fi
+
+    # Battery optimization
+    if grep -q "$app" /data/system/deviceidle.xml; then
+        touch "$appout/battery_opt_disabled"
     fi
 
     echo
