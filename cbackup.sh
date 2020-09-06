@@ -3,12 +3,7 @@
 set -euo pipefail
 shopt -s nullglob
 
-# Requirements:
-#   tsu
-#   sed
-#   zstd
-#   pv
-#   openssl-tool
+# Required Termux packages: tsu sed zstd pv openssl-tool
 
 # Prints an error in bold red
 function err() {
