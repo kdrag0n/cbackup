@@ -6,6 +6,9 @@ shopt -s nullglob
 # Requirements:
 #   tsu
 #   sed
+#   zstd
+#   pv
+#   openssl-tool
 
 # Prints an error in bold red
 function err() {
@@ -28,6 +31,9 @@ function msg() {
 # Settings
 tmp="/data/local/tmp/cbackup"
 out="${1:-/sdcard/cbackup}"
+encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
+# FIXME: hardcoded password for testing
+password="cbackup-test!"
 
 # Setup
 rm -fr "$tmp"
@@ -75,6 +81,13 @@ do
     mkdir "$appout/apk"
     apkdir="$(grep "codePath=" <<< "$appinfo" | sed 's/^\s*codePath=//')"
     cp "$apkdir/base.apk" "$apkdir/split_"* "$appout/apk"
+
+    # Data
+    msg "    • Data"
+    tar -C / -cf - "data/data/$app" | \
+        zstd -T0 - | \
+        PASSWORD="$password" openssl enc "${encryption_args[@]}" -pass env:PASSWORD | \
+        pv > "$appout/data.tar.zst.enc"
 
     echo
 done
