@@ -45,19 +45,19 @@ do_backup() {
 
     # FIXME: OVERRIDE FOR TESTING
     apps="dev.kdrag0n.flutter.touchpaint
-    com.simplemobiletools.gallery.pro
-    com.mixplorer
-    org.tasks
-    org.bromite.bromite
-    com.omgodse.notally
-    com.isaiahvonrundstedt.fokus
-    com.aurora.store
-    org.opencv.engine
-    com.minar.birday
-    net.redsolver.noteless
-    com.automattic.simplenote
-    com.termux
-    "
+com.simplemobiletools.gallery.pro
+com.mixplorer
+org.tasks
+org.bromite.bromite
+com.omgodse.notally
+com.isaiahvonrundstedt.fokus
+com.aurora.store
+org.opencv.engine
+com.minar.birday
+net.redsolver.noteless
+com.automattic.simplenote
+com.termux
+"
 
     echo "Apps to backup:"
     echo "$apps"
