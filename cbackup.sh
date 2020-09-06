@@ -41,6 +41,22 @@ pm list packages --user 0 > "$tmp/pm_all_pkgs.list"
 pm list packages -s --user 0 > "$tmp/pm_sys_pkgs.list"
 apps="$(grep -vf "$tmp/pm_sys_pkgs.list" "$tmp/pm_all_pkgs.list" | sed 's/package://g')"
 
+# FIXME: OVERRIDE FOR TESTING
+apps="dev.kdrag0n.flutter.touchpaint
+com.simplemobiletools.gallery.pro
+com.mixplorer
+org.tasks
+org.bromite.bromite
+com.omgodse.notally
+com.isaiahvonrundstedt.fokus
+com.aurora.store
+org.opencv.engine
+com.minar.birday
+net.redsolver.noteless
+com.automattic.simplenote
+com.termux
+"
+
 echo "Apps to backup:"
 echo "$apps"
 echo
