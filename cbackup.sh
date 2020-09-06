@@ -90,7 +90,7 @@ do
         pv > "$appout/data.tar.zst.enc"
 
     # Permissions
-    msg "    • Other (permissions, SSAID, battery optimization)"
+    msg "    • Other (permissions, SSAID, battery optimization, installer name)"
     grep "granted=true, flags=" <<< "$appinfo" | \
         sed 's/^\s*\(.*\): granted.*$/\1/g' > "$appout/permissions.list" \
         || true
@@ -103,6 +103,12 @@ do
     # Battery optimization
     if grep -q "$app" /data/system/deviceidle.xml; then
         touch "$appout/battery_opt_disabled"
+    fi
+
+    # Installer name
+    pkginfo="$(grep 'package name="'"$app"'"' /data/system/packages.xml)"
+    if grep -q "installer=" <<< "$pkginfo"; then
+        sed 's/^.*installer="\(.*\)".*$/\1/' <<< "$pkginfo" > "$appout/installer_name.txt"
     fi
 
     echo
