@@ -129,6 +129,6 @@ rm -fr "$tmp"
 
 echo
 echo
-msg "================"
-msg "Backup finished!"
-msg "================"
+msg "========================"
+msg "Backup/restore finished!"
+msg "========================"
