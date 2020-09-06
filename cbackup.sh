@@ -27,6 +27,7 @@ function msg() {
 tmp="/data/local/tmp/cbackup"
 backup_dir="${1:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
+backup_version="1"
 # FIXME: hardcoded password for testing
 password="cbackup-test!"
 
@@ -71,6 +72,9 @@ com.termux
         appout="$backup_dir/$app"
         mkdir "$appout"
         appinfo="$(dumpsys package "$app")"
+
+        # Backup version
+        echo "$backup_version" > "$appout/backup_version.txt"
 
         # APK
         msg "    • APK"
