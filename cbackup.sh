@@ -89,6 +89,12 @@ do
         PASSWORD="$password" openssl enc "${encryption_args[@]}" -pass env:PASSWORD | \
         pv > "$appout/data.tar.zst.enc"
 
+    # Permissions
+    msg "    • Other (permissions)"
+    grep "granted=true, flags=" <<< "$appinfo" | \
+        sed 's/^\s*\(.*\): granted.*$/\1/g' > "$appout/permissions.list" \
+        || true
+
     echo
 done
 
