@@ -90,10 +90,15 @@ do
         pv > "$appout/data.tar.zst.enc"
 
     # Permissions
-    msg "    • Other (permissions)"
+    msg "    • Other (permissions, SSAID)"
     grep "granted=true, flags=" <<< "$appinfo" | \
         sed 's/^\s*\(.*\): granted.*$/\1/g' > "$appout/permissions.list" \
         || true
+
+    # SSAID
+    if grep -q 'package="'"$app"'"' /data/system/users/0/settings_ssaid.xml; then
+        grep 'package="'"$app"'"' /data/system/users/0/settings_ssaid.xml > "$appout/ssaid.xml"
+    fi
 
     echo
 done
