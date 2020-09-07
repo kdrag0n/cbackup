@@ -63,7 +63,6 @@ org.opencv.engine
 com.minar.birday
 net.redsolver.noteless
 com.automattic.simplenote
-com.termux
 "
 
     echo "Apps to backup:"
