@@ -83,6 +83,7 @@ function decrypt_file() {
 }
 
 # Setup
+ssaid_restored=false
 rm -fr "$tmp"
 mkdir -p "$tmp"
 
@@ -259,6 +260,7 @@ do_restore() {
         if [[ -f "$appdir/ssaid.xml" ]]; then
             dbg "Restoring SSAID: $(cat "$appdir/ssaid.xml")"
             cat "$appdir/ssaid.xml" >> /data/system/users/0/settings_ssaid.xml
+            ssaid_restored=true
         fi
 
         # Battery optimization
@@ -297,3 +299,7 @@ echo
 msg "========================"
 msg "Backup/restore finished!"
 msg "========================"
+
+if [[ "$ssaid_restored" == "true" ]]; then
+    warn "Warning: Restored SSAIDs will be lost if you do not reboot IMMEDIATELY!"
+fi
