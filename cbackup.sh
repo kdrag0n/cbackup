@@ -301,6 +301,8 @@ else
         do_backup
     elif [[ "$1" == "restore" ]]; then
         do_restore
+    else
+        die "Unknown action '$1'"
     fi
 fi
 
