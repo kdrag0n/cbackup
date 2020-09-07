@@ -2,7 +2,8 @@
 
 # cbackup: Simple full app + data + metadata backup/restore script for Android
 #
-# Required Termux packages: tsu tar sed zstd pv openssl-tool
+# Required Termux packages: tsu tar sed zstd openssl-tool
+# Optional packages: pv
 #
 # App data backups are tarballs compressed with Zstandard and encrypted with
 # AES-256-CTR.
@@ -87,6 +88,13 @@ ssaid_restored=false
 rm -fr "$tmp"
 mkdir -p "$tmp"
 
+# Degrade gracefully if pv is not available
+if type pv > /dev/null; then
+    progress_cmd="pv"
+else
+    progress_cmd="cat"
+fi
+
 do_backup() {
     rm -fr "$backup_dir"
     mkdir -p "$backup_dir"
@@ -139,7 +147,7 @@ com.automattic.simplenote
         tar -C / -cf - "data/data/$app" | \
             zstd -T0 - | \
             encrypt_stream | \
-            pv > "$appout/data.tar.zst.enc"
+            $progress_cmd > "$appout/data.tar.zst.enc"
 
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
@@ -232,7 +240,7 @@ do_restore() {
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
-            pv | \
+            $progress_cmd | \
             tar -C / -xf -
 
         uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
