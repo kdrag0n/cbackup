@@ -76,7 +76,7 @@ com.termux
         # Backup version
         echo "$backup_version" > "$appout/backup_version.txt"
 
-        # APK
+        # APKs
         msg "    • APK"
         mkdir "$appout/apk"
         apkdir="$(grep "codePath=" <<< "$appinfo" | sed 's/^\s*codePath=//')"
