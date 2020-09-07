@@ -196,6 +196,14 @@ do_restore() {
         # We need to use Android chcon to avoid "Operation not supported on transport endpoint" errors
         /system/bin/chcon -hR "$secontext" "/data/data/$app"
 
+        # Permissions
+        msg "    • Other (permissions)"
+        for perm in $(cat "$appdir/permissions.list")
+        do
+            dbg "Granting permission $perm"
+            pm grant --user 0 "$app" "$perm"
+        done
+
         echo
     done
 }
