@@ -293,10 +293,16 @@ do_restore() {
 set +u
 if [[ -z "$1" ]]; then
     set -u
-    echo "No action specified, defaulting to backup"
-    do_backup
+
+    if [[ "$0" == *"restore"* ]]; then
+        do_restore
+    else
+        echo "No action specified, defaulting to backup"
+        do_backup
+    fi
 else
     set -u
+
     if [[ "$1" == "backup" ]]; then
         do_backup
     elif [[ "$1" == "restore" ]]; then
