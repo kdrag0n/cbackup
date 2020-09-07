@@ -175,6 +175,27 @@ do_restore() {
         pm install-commit "$pm_session"
         appinfo="$(dumpsys package "$app")"
 
+        # Data
+        msg "    • Data"
+        dbg "Extracting data with encryption args: ${encryption_args[@]}"
+        PASSWORD="$password" openssl enc -d -in "$appdir/data.tar.zst.enc" "${encryption_args[@]}" -pass env:PASSWORD | \
+            zstd -d -T0 - | \
+            pv | \
+            tar -C / -xf -
+
+        uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
+        gid_cache="$((uid + 10000))"
+        app_id="$((uid - 10000))"
+        secontext="u:object_r:app_data_file:s0:c$app_id,c256,c512,c768"
+
+        dbg "Changing data owner to $uid and cache to $gid_cache"
+        chown -R "$uid:$uid" "/data/data/$app"
+        chown -R "$uid:$gid_cache" "/data/data/$app/"*cache*
+
+        dbg "Changing SELinux context to $secontext"
+        # We need to use Android chcon to avoid "Operation not supported on transport endpoint" errors
+        /system/bin/chcon -hR "$secontext" "/data/data/$app"
+
         echo
     done
 }
