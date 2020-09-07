@@ -55,11 +55,13 @@ function dbg() {
     [[ "$debug" == "true" ]] && echo "$@"
 }
 
+# Constants
+BACKUP_VERSION="1"
+
 # Settings
 tmp="/data/local/tmp/cbackup"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
-backup_version="1"
 debug=true
 # FIXME: hardcoded password for testing
 password="cbackup-test!"
@@ -106,7 +108,7 @@ com.automattic.simplenote
         appinfo="$(dumpsys package "$app")"
 
         # Backup version
-        echo "$backup_version" > "$appout/backup_version.txt"
+        echo "$BACKUP_VERSION" > "$appout/backup_version.txt"
 
         # APKs
         msg "    • APK"
@@ -172,8 +174,8 @@ do_restore() {
             die "Backup version is missing"
         else
             bver="$(cat "$appdir/backup_version.txt")"
-            if [[ "$bver" != "$backup_version" ]]; then
-                die "Incompatible backup version $bver, expected $backup_version"
+            if [[ "$bver" != "$BACKUP_VERSION" ]]; then
+                die "Incompatible backup version $bver, expected $BACKUP_VERSION"
             fi
         fi
 
