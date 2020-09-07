@@ -197,12 +197,18 @@ do_restore() {
         /system/bin/chcon -hR "$secontext" "/data/data/$app"
 
         # Permissions
-        msg "    • Other (permissions)"
+        msg "    • Other (permissions, SSAID)"
         for perm in $(cat "$appdir/permissions.list")
         do
             dbg "Granting permission $perm"
             pm grant --user 0 "$app" "$perm"
         done
+
+        # SSAID
+        if [[ -f "$appdir/ssaid.xml" ]]; then
+            dbg "Restoring SSAID: $(cat "$appdir/ssaid.xml")"
+            cat "$appdir/ssaid.xml" >> /data/system/users/0/settings_ssaid.xml
+        fi
 
         echo
     done
