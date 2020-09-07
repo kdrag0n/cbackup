@@ -138,9 +138,9 @@ com.automattic.simplenote
         fi
 
         # Installer name
-        pkginfo="$(grep 'package name="'"$app"'"' /data/system/packages.xml)"
-        if grep -q "installer=" <<< "$pkginfo"; then
-            sed 's/^.*installer="\(.*\)".*$/\1/' <<< "$pkginfo" > "$appout/installer_name.txt"
+        if grep -q "installerPackageName=" <<< "$appinfo"; then
+            grep "installerPackageName=" <<< "$appinfo" | \
+                sed 's/^\s*installerPackageName=//' > "$appout/installer_name.txt"
         fi
 
         echo
