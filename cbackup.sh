@@ -121,7 +121,19 @@ com.automattic.simplenote
 }
 
 do_restore() {
+    # First pass to show the user a list of apps to restore
+    apps=()
+    for appdir in "$backup_dir/"*
+    do
+        dbg "Discovered app $appdir"
+        app="$(basename "$appdir")"
+        apps+=("$app")
+    done
 
+    echo "Apps to restore:"
+    tr ' ' '\n' <<< "${apps[@]}"
+    echo
+    echo
 }
 
 # "$1" might be unbound here, so we need to temporarily allow unbound variables
