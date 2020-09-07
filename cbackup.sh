@@ -150,6 +150,31 @@ do_restore() {
             fi
         fi
 
+        # APKs
+        msg "    • APK"
+        # Install reason 2 = device restore
+        pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
+        # Installer name
+        if [[ -f "$appdir/installer_name.txt" ]]; then
+            pm_install_args+=(-i "$(cat "$appdir/installer_name.txt")")
+        fi
+        dbg "PM install args: ${pm_install_args[@]}"
+
+        # Install split APKs
+        pm_session="$(pm install-create "${pm_install_args[@]}" | sed 's/^.*\[\([[:digit:]]*\)\].*$/\1/')"
+        dbg "PM session: $pm_session"
+        for apk in "$appdir/apk/"*
+        do
+            # We need to specify size because we're streaming it to pm through stdin
+            # to avoid creating a temporary file
+            apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
+            split_name="$(basename "$apk")"
+            dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
+            cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name"
+        done
+        pm install-commit "$pm_session"
+        appinfo="$(dumpsys package "$app")"
+
         echo
     done
 }
