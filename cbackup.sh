@@ -197,7 +197,7 @@ do_restore() {
         /system/bin/chcon -hR "$secontext" "/data/data/$app"
 
         # Permissions
-        msg "    • Other (permissions, SSAID, battery optimization)"
+        msg "    • Other (permissions, SSAID, battery optimization, installer name)"
         for perm in $(cat "$appdir/permissions.list")
         do
             dbg "Granting permission $perm"
@@ -215,6 +215,9 @@ do_restore() {
             dbg "Whitelisting in deviceidle"
             dumpsys deviceidle whitelist "+$app"
         fi
+
+        # Installer name was already restored during APK installation, but we still
+        # print it in this section to make the output consistent with backup mode
 
         echo
     done
