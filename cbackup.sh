@@ -197,7 +197,7 @@ do_restore() {
         /system/bin/chcon -hR "$secontext" "/data/data/$app"
 
         # Permissions
-        msg "    • Other (permissions, SSAID)"
+        msg "    • Other (permissions, SSAID, battery optimization)"
         for perm in $(cat "$appdir/permissions.list")
         do
             dbg "Granting permission $perm"
@@ -208,6 +208,12 @@ do_restore() {
         if [[ -f "$appdir/ssaid.xml" ]]; then
             dbg "Restoring SSAID: $(cat "$appdir/ssaid.xml")"
             cat "$appdir/ssaid.xml" >> /data/system/users/0/settings_ssaid.xml
+        fi
+
+        # Battery optimization
+        if [[ -f "$appdir/battery_opt_disabled" ]]; then
+            dbg "Whitelisting in deviceidle"
+            dumpsys deviceidle whitelist "+$app"
         fi
 
         echo
