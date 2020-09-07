@@ -119,13 +119,19 @@ do_restore() {
 
 }
 
+# "$1" might be unbound here, so we need to temporarily allow unbound variables
+set +u
 if [[ -z "$1" ]]; then
+    set -u
     echo "No action specified, defaulting to backup"
     do_backup
-elif [[ "$1" == "backup" ]]; then
-    do_backup
-elif [[ "$1" == "restore" ]]; then
-    do_restore
+else
+    set -u
+    if [[ "$1" == "backup" ]]; then
+        do_backup
+    elif [[ "$1" == "restore" ]]; then
+        do_restore
+    fi
 fi
 
 # Cleanup
