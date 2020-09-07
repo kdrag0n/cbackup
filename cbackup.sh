@@ -23,11 +23,17 @@ function msg() {
     echo -e "\e[1;32m$@\e[0m"
 }
 
+# Shows a debug message
+function dbg() {
+    [[ "$debug" == "true" ]] && echo "$@"
+}
+
 # Settings
 tmp="/data/local/tmp/cbackup"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
 backup_version="1"
+debug=true
 # FIXME: hardcoded password for testing
 password="cbackup-test!"
 
