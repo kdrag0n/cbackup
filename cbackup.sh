@@ -41,10 +41,10 @@ password="cbackup-test!"
 rm -fr "$tmp"
 mkdir -p "$tmp"
 
-rm -fr "$backup_dir"
-mkdir -p "$backup_dir"
-
 do_backup() {
+    rm -fr "$backup_dir"
+    mkdir -p "$backup_dir"
+
     # Get list of user app package names
     pm list packages --user 0 > "$tmp/pm_all_pkgs.list"
     pm list packages -s --user 0 > "$tmp/pm_sys_pkgs.list"
