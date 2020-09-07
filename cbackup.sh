@@ -72,7 +72,9 @@ function msg() {
 
 # Shows a debug message
 function dbg() {
-    [[ "$debug" == "true" ]] && echo "$@"
+    if [[ "$debug" == "true" ]]; then
+        echo "$@"
+    fi
 }
 
 function encrypt_stream() {
