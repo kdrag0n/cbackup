@@ -232,9 +232,9 @@ do_restore() {
             apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
             split_name="$(basename "$apk")"
             dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
-            cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name"
+            cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" > /dev/null
         done
-        pm install-commit "$pm_session"
+        pm install-commit "$pm_session" > /dev/null
         appinfo="$(dumpsys package "$app")"
 
         # Data
