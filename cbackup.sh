@@ -34,6 +34,7 @@ shopt -s nullglob
 
 # Constants
 BACKUP_VERSION="1"
+PASSWORD_CANARY="cbackup valid"
 
 # Settings
 tmp="/data/local/tmp/cbackup"
@@ -115,8 +116,9 @@ com.automattic.simplenote
         mkdir "$appout"
         appinfo="$(dumpsys package "$app")"
 
-        # Backup version
+        # cbackup metadata
         echo "$BACKUP_VERSION" > "$appout/backup_version.txt"
+        echo -n "$PASSWORD_CANARY" | encrypt_stream > "$appout/password_canary.bin"
 
         # APKs
         msg "    • APK"
@@ -185,6 +187,11 @@ do_restore() {
             if [[ "$bver" != "$BACKUP_VERSION" ]]; then
                 die "Incompatible backup version $bver, expected $BACKUP_VERSION"
             fi
+        fi
+
+        # Check password canary
+        if [[ "$(decrypt_file "$appdir/password_canary.bin")" != "$PASSWORD_CANARY" ]]; then
+            die "Incorrect password or corrupted backup!"
         fi
 
         # APKs
