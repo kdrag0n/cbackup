@@ -32,6 +32,17 @@
 set -euo pipefail
 shopt -s nullglob
 
+# Constants
+BACKUP_VERSION="1"
+
+# Settings
+tmp="/data/local/tmp/cbackup"
+backup_dir="${2:-/sdcard/cbackup}"
+encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
+debug=true
+# FIXME: hardcoded password for testing
+password="cbackup-test!"
+
 # Prints an error in bold red
 function err() {
     echo
@@ -55,16 +66,13 @@ function dbg() {
     [[ "$debug" == "true" ]] && echo "$@"
 }
 
-# Constants
-BACKUP_VERSION="1"
+function encrypt_stream() {
+    PASSWORD="$password" openssl enc "${encryption_args[@]}" -pass env:PASSWORD
+}
 
-# Settings
-tmp="/data/local/tmp/cbackup"
-backup_dir="${2:-/sdcard/cbackup}"
-encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
-debug=true
-# FIXME: hardcoded password for testing
-password="cbackup-test!"
+function decrypt_file() {
+    PASSWORD="$password" openssl enc -d -in "$1" "${encryption_args[@]}" -pass env:PASSWORD
+}
 
 # Setup
 rm -fr "$tmp"
@@ -120,7 +128,7 @@ com.automattic.simplenote
         msg "    • Data"
         tar -C / -cf - "data/data/$app" | \
             zstd -T0 - | \
-            PASSWORD="$password" openssl enc "${encryption_args[@]}" -pass env:PASSWORD | \
+            encrypt_stream | \
             pv > "$appout/data.tar.zst.enc"
 
         # Permissions
@@ -207,7 +215,7 @@ do_restore() {
         # Data
         msg "    • Data"
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
-        PASSWORD="$password" openssl enc -d -in "$appdir/data.tar.zst.enc" "${encryption_args[@]}" -pass env:PASSWORD | \
+        decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
             pv | \
             tar -C / -xf -
