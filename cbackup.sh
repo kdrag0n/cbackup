@@ -41,7 +41,7 @@ PASSWORD_CANARY="cbackup valid"
 tmp="/data/local/tmp/cbackup"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
-debug=true
+debug=false
 # FIXME: hardcoded password for testing
 password="cbackup-test!"
 
