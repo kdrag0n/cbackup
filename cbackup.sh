@@ -134,6 +134,24 @@ do_restore() {
     tr ' ' '\n' <<< "${apps[@]}"
     echo
     echo
+
+    for app in "${apps[@]}"
+    do
+        appdir="$backup_dir/$app"
+        msg "Restoring $app..."
+
+        # Check version
+        if [[ ! -f "$appdir/backup_version.txt" ]]; then
+            die "Backup version is missing"
+        else
+            bver="$(cat "$appdir/backup_version.txt")"
+            if [[ "$bver" != "$backup_version" ]]; then
+                die "Incompatible backup version $bver, expected $backup_version"
+            fi
+        fi
+
+        echo
+    done
 }
 
 # "$1" might be unbound here, so we need to temporarily allow unbound variables
