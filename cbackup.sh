@@ -175,6 +175,9 @@ com.automattic.simplenote
 
         echo
     done
+
+    # Copy script into backup for easy restoration
+    cp "$0" "$backup_dir/restore.sh"
 }
 
 do_restore() {
