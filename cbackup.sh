@@ -57,6 +57,13 @@ function die() {
     exit 1
 }
 
+# Prints a warning in bold yellow
+function warn() {
+    echo
+    echo -e "\e[1;33m$@\e[0m"
+    echo
+}
+
 # Shows an informational message
 function msg() {
     echo -e "\e[1;32m$@\e[0m"
