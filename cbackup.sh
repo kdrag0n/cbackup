@@ -180,7 +180,7 @@ com.automattic.simplenote
         msg "    • Data"
         pushd / > /dev/null
         tar -cf - "data/data/$app" "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
-            $progress_cmd |
+            progress_cmd -s "${app_data_sizes[$app]}" |
             zstd -T0 - | \
             encrypt_stream > "$appout/data.tar.zst.enc"
         popd > /dev/null
@@ -281,7 +281,7 @@ do_restore() {
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
-            $progress_cmd | \
+            progress_cmd | \
             tar -C / -xf -
 
         uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
