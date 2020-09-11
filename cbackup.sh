@@ -116,9 +116,14 @@ mkdir -p "$tmp"
 
 # Degrade gracefully if pv is not available
 if type pv > /dev/null; then
-    progress_cmd="pv"
+    function progress_cmd() {
+        pv "$@"
+    }
 else
-    progress_cmd="cat"
+    function progress_cmd() {
+        # Ignore pv arguments
+        cat
+    }
 fi
 
 do_backup() {
