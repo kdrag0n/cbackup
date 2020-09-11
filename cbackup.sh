@@ -31,7 +31,7 @@
 # SOFTWARE.
 
 set -euo pipefail
-shopt -s nullglob
+shopt -s nullglob dotglob extglob
 
 # Constants
 BACKUP_VERSION="1"
@@ -146,7 +146,7 @@ com.automattic.simplenote
 
         # Data
         msg "    • Data"
-        tar -C / -cf - "data/data/$app" | \
+        tar -C / -cf - "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
             zstd -T0 - | \
             encrypt_stream | \
             $progress_cmd > "$appout/data.tar.zst.enc"
