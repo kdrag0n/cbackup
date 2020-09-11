@@ -242,6 +242,8 @@ do_restore() {
 
         # Data
         msg "    • Data"
+        dbg "Clearing placeholder app data"
+        rm -fr "/data/data/$app/"*
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
