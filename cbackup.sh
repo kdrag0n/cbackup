@@ -148,9 +148,9 @@ com.automattic.simplenote
         msg "    • Data"
         pushd / > /dev/null
         tar -cf - "data/data/$app" "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
+            $progress_cmd |
             zstd -T0 - | \
-            encrypt_stream | \
-            $progress_cmd > "$appout/data.tar.zst.enc"
+            encrypt_stream > "$appout/data.tar.zst.enc"
         popd > /dev/null
 
         # Permissions
