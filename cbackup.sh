@@ -85,6 +85,30 @@ function decrypt_file() {
     PASSWORD="$password" openssl enc -d -in "$1" "${encryption_args[@]}" -pass env:PASSWORD
 }
 
+function parse_diskstats_array() {
+    local diskstats="$1"
+    local label="$2"
+
+    grep "$label: " <<< "$diskstats" | \
+        sed "s/$label: //" | \
+        tr -d '"[]' | \
+        tr ',' '\n'
+}
+
+function get_app_data_sizes() {
+    local diskstats="$(dumpsys diskstats)"
+    local pkg_names=($(parse_diskstats_array "$diskstats" "Package Names"))
+    local data_sizes=($(parse_diskstats_array "$diskstats" "App Data Sizes"))
+    local end_idx="$((${#data_sizes[@]} - 1))"
+
+    echo '('
+    for i in $(seq 0 $end_idx)
+    do
+        echo "['${pkg_names[$i]}']=${data_sizes[$i]}"
+    done
+    echo ')'
+}
+
 # Setup
 ssaid_restored=false
 rm -fr "$tmp"
@@ -125,6 +149,9 @@ com.automattic.simplenote
     echo "$apps"
     echo
     echo
+
+    # Get map of app data sizes
+    declare -A app_data_sizes="$(get_app_data_sizes)"
 
     # Back up apps
     for app in $apps
