@@ -146,10 +146,12 @@ com.automattic.simplenote
 
         # Data
         msg "    • Data"
-        tar -C / -cf - "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
+        pushd / > /dev/null
+        tar -cf - "data/data/$app" "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
             zstd -T0 - | \
             encrypt_stream | \
             $progress_cmd > "$appout/data.tar.zst.enc"
+        popd > /dev/null
 
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
