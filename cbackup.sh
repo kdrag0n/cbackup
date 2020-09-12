@@ -372,7 +372,7 @@ do_restore() {
 
         # Data
         msg "    • Data"
-        local datadir="/data/data/$app"
+        local data_dir="/data/data/$app"
 
         # We can't delete and extract directly to the Termux root because we
         # need to use Termux-provided tools for extracting app data
@@ -380,7 +380,7 @@ do_restore() {
         if $termux_inplace; then
             # This temporary output directory must be in /data/data to apply the
             # correct FBE key, so we can avoid a copy when swapping directories
-            out_root_dir="$(dirname "$datadir")/._cbackup_termux_inplace_restore"
+            out_root_dir="$(dirname "$data_dir")/._cbackup_termux_inplace_restore"
 
             dbg "Using $out_root_dir for temporary in-place operations"
             rm -fr "$out_root_dir"
@@ -391,12 +391,12 @@ do_restore() {
             # At this point, we can delete Android's placeholder app data for
             # normal apps, but deleting it for Termux is NOT safe!
             dbg "Clearing placeholder app data"
-            rm -fr "${datadir:?}/"*
+            rm -fr "${data_dir:?}/"*
         fi
 
         # Create new data directory for in-place Termux restore
         # No extra slash here because both are supposed to be absolute paths
-        local new_data_dir="$out_root_dir$datadir"
+        local new_data_dir="$out_root_dir$data_dir"
         dbg "New temporary data directory is $new_data_dir"
         mkdir -p "$new_data_dir"
         chmod 700 "$new_data_dir"
@@ -412,7 +412,7 @@ do_restore() {
         local secontext
         # There's no other way to get the SELinux context.
         # shellcheck disable=SC2012
-        secontext="$(/system/bin/ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
+        secontext="$(/system/bin/ls -a1Z "$data_dir" | head -1 | cut -d' ' -f1)"
         dbg "App SELinux context is $secontext"
 
         # Finally, extract the app data
@@ -441,7 +441,7 @@ do_restore() {
             # but we can't get around that without using the relatively new
             # renameat(2) syscall, which isn't exposed by coreutils.
             dbg "Swapping out current data directory"
-            mv "$datadir" "$out_root_dir/_old_data"
+            mv "$data_dir" "$out_root_dir/_old_data"
 
             # ---------------------- DANGER DANGER DANGER ----------------------
             # We need to be careful with the commands we use here because Termux
@@ -453,7 +453,7 @@ do_restore() {
 
             # Swap in the new one ASAP
             dbg "Switching to new data directory"
-            LD_PRELOAD= /system/bin/mv "$new_data_dir" "$datadir"
+            LD_PRELOAD= /system/bin/mv "$new_data_dir" "$data_dir"
 
             # Update cwd for the new directory inode
             # Fall back to Termux HOME if cwd doesn't exist in the restored env
