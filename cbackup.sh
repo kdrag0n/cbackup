@@ -267,16 +267,16 @@ com.google.android.inputmethod.latin
 do_restore() {
     # First pass to show the user a list of apps to restore
     local apps=()
-    local appdir
-    for appdir in "$backup_dir/"*
+    local app_dir
+    for app_dir in "$backup_dir/"*
     do
-        if [[ ! -d "$appdir" ]]; then
-            dbg "Ignoring non-directory $appdir"
+        if [[ ! -d "$app_dir" ]]; then
+            dbg "Ignoring non-directory $app_dir"
             continue
         fi
 
-        dbg "Discovered app $appdir"
-        app="$(basename "$appdir")"
+        dbg "Discovered app $app_dir"
+        app="$(basename "$app_dir")"
         apps+=("$app")
     done
 
@@ -293,22 +293,22 @@ do_restore() {
     local app
     for app in "${apps[@]}"
     do
-        local appdir="$backup_dir/$app"
+        local app_dir="$backup_dir/$app"
         msg "Restoring $app..."
 
         # Check version
-        if [[ ! -f "$appdir/backup_version.txt" ]]; then
+        if [[ ! -f "$app_dir/backup_version.txt" ]]; then
             die "Backup version is missing"
         else
             local bver
-            bver="$(cat "$appdir/backup_version.txt")"
+            bver="$(cat "$app_dir/backup_version.txt")"
             if [[ "$bver" != "$BACKUP_VERSION" ]]; then
                 die "Incompatible backup version $bver, expected $BACKUP_VERSION"
             fi
         fi
 
         # Check password canary
-        if [[ "$(decrypt_file "$appdir/password_canary.bin")" != "$PASSWORD_CANARY" ]]; then
+        if [[ "$(decrypt_file "$app_dir/password_canary.bin")" != "$PASSWORD_CANARY" ]]; then
             die "Incorrect password or corrupted backup!"
         fi
 
@@ -340,8 +340,8 @@ do_restore() {
             # Install reason 2 = device restore
             local pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
             # Installer name
-            if [[ -f "$appdir/installer_name.txt" ]]; then
-                pm_install_args+=(-i "$(cat "$appdir/installer_name.txt")")
+            if [[ -f "$app_dir/installer_name.txt" ]]; then
+                pm_install_args+=(-i "$(cat "$app_dir/installer_name.txt")")
             fi
             dbg "PM install args: ${pm_install_args[*]}"
 
@@ -351,7 +351,7 @@ do_restore() {
             dbg "PM session: $pm_session"
 
             local apk
-            for apk in "$appdir/apk/"*
+            for apk in "$app_dir/apk/"*
             do
                 # We need to specify size because we're streaming it to pm through stdin
                 # to avoid creating a temporary file
@@ -417,7 +417,7 @@ do_restore() {
 
         # Finally, extract the app data
         dbg "Extracting data with encryption args: ${encryption_args[*]}"
-        decrypt_file "$appdir/data.tar.zst.enc" | \
+        decrypt_file "$app_dir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
             progress_cmd | \
             tar -C "$out_root_dir" -xf -
@@ -486,21 +486,21 @@ do_restore() {
         # Permissions
         msg "    • Other"
         local perm
-        for perm in $(cat "$appdir/permissions.list")
+        for perm in $(cat "$app_dir/permissions.list")
         do
             dbg "Granting permission $perm"
             pm grant --user 0 "$app" "$perm"
         done
 
         # SSAID
-        if [[ -f "$appdir/ssaid.xml" ]]; then
-            dbg "Restoring SSAID: $(cat "$appdir/ssaid.xml")"
-            cat "$appdir/ssaid.xml" >> /data/system/users/0/settings_ssaid.xml
+        if [[ -f "$app_dir/ssaid.xml" ]]; then
+            dbg "Restoring SSAID: $(cat "$app_dir/ssaid.xml")"
+            cat "$app_dir/ssaid.xml" >> /data/system/users/0/settings_ssaid.xml
             ssaid_restored=true
         fi
 
         # Battery optimization
-        if [[ -f "$appdir/battery_opt_disabled" ]]; then
+        if [[ -f "$app_dir/battery_opt_disabled" ]]; then
             dbg "Whitelisting in deviceidle"
             dumpsys deviceidle whitelist "+$app"
         fi
