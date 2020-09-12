@@ -311,6 +311,7 @@ do_restore() {
         datadir="/data/data/$app"
         dbg "Clearing placeholder app data"
         rm -fr "$datadir/"*
+        secontext="$(ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
@@ -320,7 +321,6 @@ do_restore() {
         uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
         gid_cache="$((uid + 10000))"
         app_id="$((uid - 10000))"
-        secontext="u:object_r:app_data_file:s0:c$app_id,c256,c512,c768"
 
         dbg "Changing data owner to $uid and cache to $gid_cache"
         chown -R "$uid:$uid" "$datadir"
