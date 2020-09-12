@@ -1,0 +1,45 @@
+[mroot[38:5:242m@localhost[39m [34m/data/data/com.termux/files/home[39m [33m12s
+[m[35m❯[39m [32mhyperfine[39m -p [33m'echo 3 > /proc/sys/vm/drop_caches'[39m [33m'tar -cf - /data/data/com.termux | cat > /data/local/tmp/asdf'[39m [33m'tar 
+[m[33m-cf - /data/data/com.termux | lz4 -1 - > /data/local/tmp/asdf'[39m [33m'tar -cf - /data/data/com.termux | lz4 -9 - > /data/loca
+[m[33ml/tmp/asdf'[39m [33m'tar -cf - /data/data/com.termux | zstd -T1 - > /data/local/tmp/asdf'[39m [33m'tar -cf - /data/data/com.termux | zs
+[m[33mtd -T4 - > /data/local/tmp/asdf'[39m [33m'tar -cf - /data/data/com.termux | zstd -T0 - > /data/local/tmp/asdf'[39m [33m'tar -cf - /data
+[m[33m/data/com.termux | gzip > /data/local/tmp/asdf'
+[m[1mBenchmark #1[22m: tar -cf - /data/data/com.termux | cat > /data/local/tmp/asdf
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m27.291 s[22;39m ± [32m 0.733 s[39m    [User: [34m925.8 ms[39m, System: [34m15014.2 ms[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m25.641 s[39m … [35m28.284 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #2[22m: tar -cf - /data/data/com.termux | lz4 -1 - > /data/local/tmp/asdf
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m33.381 s[22;39m ± [32m 0.320 s[39m    [User: [34m8.894 s[39m, System: [34m14.254 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m32.992 s[39m … [35m33.845 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #3[22m: tar -cf - /data/data/com.termux | lz4 -9 - > /data/local/tmp/asdf
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m96.058 s[22;39m ± [32m 0.913 s[39m    [User: [34m73.358 s[39m, System: [34m13.661 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m94.676 s[39m … [35m97.516 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #4[22m: tar -cf - /data/data/com.termux | zstd -T1 - > /data/local/tmp/asdf
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m27.346 s[22;39m ± [32m 0.389 s[39m    [User: [34m11.482 s[39m, System: [34m14.726 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m26.551 s[39m … [35m27.775 s[39m    [2m10 runs
+[m 
+[m[m[1mBenchmark #5[22m: tar -cf - /data/data/com.termux | zstd -T4 - > /data/local/tmp/asdf
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m26.058 s[22;39m ± [32m 0.850 s[39m    [User: [34m16.484 s[39m, System: [34m13.769 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m24.653 s[39m … [35m27.682 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #6[22m: tar -cf - /data/data/com.termux | zstd -T0 - > /data/local/tmp/asdf
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m25.079 s[22;39m ± [32m 0.753 s[39m    [User: [34m18.672 s[39m, System: [34m12.983 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m24.094 s[39m … [35m26.437 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #7[22m: tar -cf - /data/data/com.termux | gzip > /data/local/tmp/asdf
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m106.002 s[22;39m ± [32m 7.253 s[39m    [User: [34m95.856 s[39m, System: [34m8.835 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m101.991 s[39m … [35m123.913 s[39m    [2m10 runs
+[m 
+[m  [33mWarning[39m: Statistical outliers were detected. Consider re-running this benchmark on a quiet PC without any interferenc
+[mes from other programs. It might help to use the '--warmup' or '--prepare' options.
+[m 
+[m[1mSummary
+[m  '[36mtar -cf - /data/data/com.termux | zstd -T0 - > /data/local/tmp/asdf[39m' ran
+[m[1;32m    1.04[22;39m ± [32m0.05[39m times faster than '[35mtar -cf - /data/data/com.termux | zstd -T4 - > /data/local/tmp/asdf[39m'
+[m[1;32m    1.09[22;39m ± [32m0.04[39m times faster than '[35mtar -cf - /data/data/com.termux | cat > /data/local/tmp/asdf[39m'
+[m[1;32m    1.09[22;39m ± [32m0.04[39m times faster than '[35mtar -cf - /data/data/com.termux | zstd -T1 - > /data/local/tmp/asdf[39m'
+[m[1;32m    1.33[22;39m ± [32m0.04[39m times faster than '[35mtar -cf - /data/data/com.termux | lz4 -1 - > /data/local/tmp/asdf[39m'
+[m[1;32m    3.83[22;39m ± [32m0.12[39m times faster than '[35mtar -cf - /data/data/com.termux | lz4 -9 - > /data/local/tmp/asdf[39m'
+[m[1;32m    4.23[22;39m ± [32m0.32[39m times faster than '[35mtar -cf - /data/data/com.termux | gzip > /data/local/tmp/asdf[39m'
