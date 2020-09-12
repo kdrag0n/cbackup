@@ -35,7 +35,7 @@ shopt -s nullglob dotglob extglob
 
 # Constants
 BACKUP_VERSION="1"
-PASSWORD_CANARY="cbackup valid"
+PASSWORD_CANARY="cbackup-valid"
 
 # Settings
 tmp="/data/local/tmp/cbackup"
