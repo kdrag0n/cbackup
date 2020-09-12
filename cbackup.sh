@@ -41,9 +41,9 @@ PASSWORD_CANARY="cbackup-valid"
 tmp="/data/local/tmp/cbackup"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
-debug=true
+debug=false
 # WARNING: Hardcoded password FOR TESTING ONLY!
-#password="cbackup-test!"
+password="cbackup-test!"
 
 # Prints an error in bold red
 function err() {
@@ -280,6 +280,9 @@ do_restore() {
     echo
     echo
 
+    local installed_apps
+    installed_apps="$(pm list packages --user 0 | sed 's/package://g')"
+
     local app
     for app in "${apps[@]}"
     do
@@ -317,6 +320,15 @@ do_restore() {
             echo "      > Skipped because we're running in Termux"
         else
             # Proceed with APK installation
+
+            # Uninstall old app if already installed
+            # We don't just clear data because there are countless other Android
+            # metadata values that are hard to clean: SSAIDs, permissions, special
+            # permissions, etc.
+            if grep -q "$app" <<< "$installed_apps"; then
+                dbg "Uninstalling old copy of app"
+                pm uninstall --user 0 "$app"
+            fi
 
             # Install reason 2 = device restore
             local pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
