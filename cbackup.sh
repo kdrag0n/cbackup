@@ -220,7 +220,7 @@ function do_backup() {
         popd > /dev/null
 
         # Permissions
-        msg "    • Other (permissions, SSAID, battery optimization, installer name)"
+        msg "    • Other"
         grep "granted=true, flags=" <<< "$app_info" | \
             sed 's/^\s*\(.*\): granted.*$/\1/g' | \
             sort | \
