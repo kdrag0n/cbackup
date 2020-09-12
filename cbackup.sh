@@ -540,5 +540,5 @@ if [[ "$termux_restored" == "true" ]]; then
     warn "Termux was restored
 ===================
 Please restart Termux as soon as possible to apply all changes.
-If you cannot restart now, running the `cd` command will will fix your current shell instance."
+If you cannot restart now, running the 'cd' command will will fix your current shell instance."
 fi
