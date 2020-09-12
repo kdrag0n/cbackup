@@ -199,7 +199,7 @@ function do_backup() {
 
         # cbackup metadata
         echo "$BACKUP_VERSION" > "$app_out/backup_version.txt"
-        echo -n "$PASSWORD_CANARY" | encrypt_to_file "$app_out/password_canary.bin"
+        echo -n "$PASSWORD_CANARY" | encrypt_to_file "$app_out/password_canary.enc"
 
         # APKs
         msg "    • APK"
@@ -292,7 +292,7 @@ function do_restore() {
         fi
 
         # Check password canary
-        if [[ "$(decrypt_file "$app_dir/password_canary.bin")" != "$PASSWORD_CANARY" ]]; then
+        if [[ "$(decrypt_file "$app_dir/password_canary.enc")" != "$PASSWORD_CANARY" ]]; then
             die "Incorrect password or corrupted backup!"
         fi
 
