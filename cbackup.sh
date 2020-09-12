@@ -308,8 +308,9 @@ do_restore() {
 
         # Data
         msg "    • Data"
+        datadir="/data/data/$app"
         dbg "Clearing placeholder app data"
-        rm -fr "/data/data/$app/"*
+        rm -fr "$datadir/"*
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
@@ -322,8 +323,8 @@ do_restore() {
         secontext="u:object_r:app_data_file:s0:c$app_id,c256,c512,c768"
 
         dbg "Changing data owner to $uid and cache to $gid_cache"
-        chown -R "$uid:$uid" "/data/data/$app"
-        chown -R "$uid:$gid_cache" "/data/data/$app/"*cache*
+        chown -R "$uid:$uid" "$datadir"
+        chown -R "$uid:$gid_cache" "$datadir/"*cache*
 
         dbg "Changing SELinux context to $secontext"
         # We need to use Android chcon to avoid "Operation not supported on transport endpoint" errors
