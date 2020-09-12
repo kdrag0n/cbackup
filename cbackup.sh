@@ -145,17 +145,24 @@ ssaid_restored=false
 rm -fr "$tmp"
 mkdir -p "$tmp"
 
-# Degrade gracefully if pv is not available
-if type pv > /dev/null; then
-    function progress_cmd() {
-        pv "$@"
-    }
-else
-    function progress_cmd() {
-        # Ignore pv arguments
-        cat
-    }
-fi
+# Degrade gracefully if optional commands are not available
+# This is a function so we can update it after in-place Termux restoration
+function check_optional_cmds() {
+    unset -f progress_cmd
+
+    if type pv > /dev/null; then
+        function progress_cmd() {
+            pv "$@"
+        }
+    else
+        function progress_cmd() {
+            # Ignore pv arguments
+            cat
+        }
+    fi
+}
+
+check_optional_cmds
 
 do_backup() {
     rm -fr "$backup_dir"
