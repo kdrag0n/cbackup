@@ -142,6 +142,7 @@ function get_app_data_sizes() {
 
 # Setup
 ssaid_restored=false
+termux_restored=false
 rm -fr "$tmp"
 mkdir -p "$tmp"
 
@@ -463,6 +464,9 @@ do_restore() {
 
             # Clean up temporary directory structure left over from swapping
             rm -fr "$out_root_dir"
+
+            # Set flag to print Termux restoration warning
+            termux_restored=true
         fi
 
         # Permissions
@@ -527,5 +531,14 @@ msg "Backup/restore finished!"
 msg "========================"
 
 if [[ "$ssaid_restored" == "true" ]]; then
-    warn "Warning: Restored SSAIDs will be lost if you do not reboot IMMEDIATELY!"
+    warn "SSAIDs were restored
+===================
+Warning: Restored SSAIDs will be lost if you do not reboot IMMEDIATELY!"
+fi
+
+if [[ "$termux_restored" == "true" ]]; then
+    warn "Termux was restored
+==================
+Please restart Termux as soon as possible to apply all changes.
+If you cannot restart now, running the `cd` command will will fix your current shell instance."
 fi
