@@ -380,6 +380,8 @@ do_restore() {
             # This temporary output directory must be in /data/data to apply the
             # correct FBE key, so we can avoid a copy when swapping directories
             out_root_dir="$(dirname "$datadir")/._cbackup_termux_inplace_restore"
+
+            dbg "Using $out_root_dir for temporary in-place operations"
             rm -fr "$out_root_dir"
             mkdir -p "$out_root_dir"
         else
@@ -394,19 +396,23 @@ do_restore() {
         # Create new data directory for in-place Termux restore
         # No extra slash here because both are supposed to be absolute paths
         local new_data_dir="$out_root_dir$datadir"
+        dbg "New temporary data directory is $new_data_dir"
         mkdir -p "$new_data_dir"
         chmod 700 "$new_data_dir"
 
         # Get UID and GIDs
         local uid
         uid="$(grep "userId=" <<< "$appinfo" | head -1 | sed 's/^\s*userId=//')"
+        dbg "App UID/GID is $uid"
         local gid_cache="$((uid + 10000))"
+        dbg "App cache GID is $gid_cache"
 
         # Get SELinux context from the system-created data directory
         local secontext
         # There's no other way to get the SELinux context.
         # shellcheck disable=SC2012
         secontext="$(/system/bin/ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
+        dbg "App SELinux context is $secontext"
 
         # Finally, extract the app data
         dbg "Extracting data with encryption args: ${encryption_args[*]}"
@@ -450,12 +456,15 @@ do_restore() {
 
             # Update cwd for the new directory inode
             # Fall back to Termux HOME if cwd doesn't exist in the restored env
+            dbg "Updating $PWD CWD"
             cd "$PWD" || cd "$HOME"
 
             # Rehash PATH cache since we might have new executable paths now
+            dbg "Refreshing shell PATH cache"
             hash -r
 
             # Check for the presence of optional commands again
+            dbg "Re-checking for optional commands"
             check_optional_cmds
 
             # ------------------------- END OF DANGER --------------------------
