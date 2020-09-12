@@ -192,6 +192,7 @@ net.redsolver.noteless
 com.automattic.simplenote
 com.termux
 com.termux.styling
+com.google.android.inputmethod.latin
 "
 
     echo "Apps to backup:"
