@@ -470,7 +470,7 @@ do_restore() {
         fi
 
         # Permissions
-        msg "    • Other (permissions, SSAID, battery optimization, installer name)"
+        msg "    • Other"
         local perm
         for perm in $(cat "$appdir/permissions.list")
         do
