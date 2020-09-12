@@ -268,6 +268,11 @@ do_restore() {
     local appdir
     for appdir in "$backup_dir/"*
     do
+        if [[ ! -d "$appdir" ]]; then
+            dbg "Ignoring non-directory $appdir"
+            continue
+        fi
+
         dbg "Discovered app $appdir"
         app="$(basename "$appdir")"
         apps+=("$app")
