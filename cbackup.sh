@@ -210,21 +210,21 @@ com.google.android.inputmethod.latin
     do
         msg "Backing up $app..."
 
-        local appout app_info
-        appout="$backup_dir/$app"
-        mkdir "$appout"
+        local app_out app_info
+        app_out="$backup_dir/$app"
+        mkdir "$app_out"
         app_info="$(dumpsys package "$app")"
 
         # cbackup metadata
-        echo "$BACKUP_VERSION" > "$appout/backup_version.txt"
-        echo -n "$PASSWORD_CANARY" | encrypt_to_file "$appout/password_canary.bin"
+        echo "$BACKUP_VERSION" > "$app_out/backup_version.txt"
+        echo -n "$PASSWORD_CANARY" | encrypt_to_file "$app_out/password_canary.bin"
 
         # APKs
         msg "    • APK"
-        mkdir "$appout/apk"
+        mkdir "$app_out/apk"
         local apkdir
         apkdir="$(grep "codePath=" <<< "$app_info" | sed 's/^\s*codePath=//')"
-        cp "$apkdir/base.apk" "$apkdir/split_"* "$appout/apk"
+        cp "$apkdir/base.apk" "$apkdir/split_"* "$app_out/apk"
 
         # Data
         msg "    • Data"
@@ -232,29 +232,29 @@ com.google.android.inputmethod.latin
         tar -cf - "data/data/$app" "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
             progress_cmd -s "${app_data_sizes[$app]}" |
             zstd -T0 - | \
-            encrypt_to_file "$appout/data.tar.zst.enc"
+            encrypt_to_file "$app_out/data.tar.zst.enc"
         popd > /dev/null
 
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
         grep "granted=true, flags=" <<< "$app_info" | \
-            sed 's/^\s*\(.*\): granted.*$/\1/g' > "$appout/permissions.list" \
+            sed 's/^\s*\(.*\): granted.*$/\1/g' > "$app_out/permissions.list" \
             || true
 
         # SSAID
         if grep -q 'package="'"$app"'"' /data/system/users/0/settings_ssaid.xml; then
-            grep 'package="'"$app"'"' /data/system/users/0/settings_ssaid.xml > "$appout/ssaid.xml"
+            grep 'package="'"$app"'"' /data/system/users/0/settings_ssaid.xml > "$app_out/ssaid.xml"
         fi
 
         # Battery optimization
         if grep -q "$app" /data/system/deviceidle.xml; then
-            touch "$appout/battery_opt_disabled"
+            touch "$app_out/battery_opt_disabled"
         fi
 
         # Installer name
         if grep -q "installerPackageName=" <<< "$app_info"; then
             grep "installerPackageName=" <<< "$app_info" | \
-                sed 's/^\s*installerPackageName=//' > "$appout/installer_name.txt"
+                sed 's/^\s*installerPackageName=//' > "$app_out/installer_name.txt"
         fi
 
         echo
