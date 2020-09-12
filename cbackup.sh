@@ -375,6 +375,7 @@ function do_restore() {
         # Data
         msg "    • Data"
         local data_dir="/data/data/$app"
+        local de_data_dir="/data/user_de/0/$app"
 
         # We can't delete and extract directly to the Termux root because we
         # need to use Termux-provided tools for extracting app data
@@ -394,14 +395,17 @@ function do_restore() {
             # normal apps, but deleting it for Termux is NOT safe!
             dbg "Clearing placeholder app data"
             rm -fr "${data_dir:?}/"*
+            rm -fr "${de_data_dir:?}/"*
         fi
 
         # Create new data directory for in-place Termux restore
         # No extra slash here because both are supposed to be absolute paths
         local new_data_dir="$out_root_dir$data_dir"
         dbg "New temporary data directory is $new_data_dir"
-        mkdir -p "$new_data_dir"
-        chmod 700 "$new_data_dir"
+        if $termux_inplace; then
+            mkdir -p "$new_data_dir"
+            chmod 700 "$new_data_dir"
+        fi
 
         # Get UID and GIDs
         local uid
@@ -426,13 +430,13 @@ function do_restore() {
 
         # Fix ownership
         dbg "Updating data owner to $uid and cache to $gid_cache"
-        chown -R "$uid:$uid" "$new_data_dir"
-        chown -R "$uid:$gid_cache" "$new_data_dir/"*cache*
+        chown -R "$uid:$uid" "$new_data_dir" "$de_data_dir"
+        chown -R "$uid:$gid_cache" "$new_data_dir/"*cache* "$de_data_dir/"*cache*
 
         # Fix SELinux context
         dbg "Updating SELinux context to $secontext"
         # We need to use Android chcon to avoid "Operation not supported on transport endpoint" errors
-        /system/bin/chcon -hR "$secontext" "$new_data_dir"
+        /system/bin/chcon -hR "$secontext" "$new_data_dir" "$de_data_dir"
 
         # Perform in-place Termux hotswap if necessary
         if $termux_inplace; then
