@@ -222,9 +222,9 @@ com.google.android.inputmethod.latin
         # APKs
         msg "    • APK"
         mkdir "$app_out/apk"
-        local apkdir
-        apkdir="$(grep "codePath=" <<< "$app_info" | sed 's/^\s*codePath=//')"
-        cp "$apkdir/base.apk" "$apkdir/split_"* "$app_out/apk"
+        local apk_dir
+        apk_dir="$(grep "codePath=" <<< "$app_info" | sed 's/^\s*codePath=//')"
+        cp "$apk_dir/base.apk" "$apk_dir/split_"* "$app_out/apk"
 
         # Data
         msg "    • Data"
