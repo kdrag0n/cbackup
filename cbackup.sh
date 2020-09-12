@@ -48,32 +48,32 @@ password="cbackup-test!"
 # Prints an error in bold red
 function err() {
     echo
-    echo -e "\e[1;31m$@\e[0m"
+    echo -e "\e[1;31m$*\e[0m"
     echo
 }
 
 # Prints an error in bold red and exits the script
 function die() {
-    err "$@"
+    err "$*"
     exit 1
 }
 
 # Prints a warning in bold yellow
 function warn() {
     echo
-    echo -e "\e[1;33m$@\e[0m"
+    echo -e "\e[1;33m$*\e[0m"
     echo
 }
 
 # Shows an informational message
 function msg() {
-    echo -e "\e[1;32m$@\e[0m"
+    echo -e "\e[1;32m$*\e[0m"
 }
 
 # Shows a debug message
 function dbg() {
     if [[ "$debug" == "true" ]]; then
-        echo "$@"
+        echo "$*"
     fi
 }
 
@@ -86,9 +86,9 @@ function ask_password() {
         set -u
 
         if [[ "$confirm" == "true" ]]; then
-            read -sp "Enter password for backup: " password
+            read -rsp "Enter password for backup: " password
             echo
-            read -sp "Confirm password: " password2
+            read -rsp "Confirm password: " password2
             echo
 
             if [[ "$password2" != "$password" ]]; then
@@ -98,7 +98,7 @@ function ask_password() {
             unset -v password2
             echo
         else
-            read -sp "Enter backup password: " password
+            read -rsp "Enter backup password: " password
         fi
     fi
 
@@ -124,17 +124,20 @@ function parse_diskstats_array() {
 }
 
 function get_app_data_sizes() {
-    local diskstats="$(dumpsys diskstats)"
-    local pkg_names=($(parse_diskstats_array "$diskstats" "Package Names"))
-    local data_sizes=($(parse_diskstats_array "$diskstats" "App Data Sizes"))
-    local end_idx="$((${#data_sizes[@]} - 1))"
+    local diskstats pkg_names data_sizes end_idx
+    declare -n size_map="$1"
 
-    echo '('
+    diskstats="$(dumpsys diskstats)"
+    mapfile -t pkg_names < <(parse_diskstats_array "$diskstats" "Package Names")
+    mapfile -t data_sizes < <(parse_diskstats_array "$diskstats" "App Data Sizes")
+    end_idx="$((${#data_sizes[@]} - 1))"
+
     for i in $(seq 0 $end_idx)
     do
-        echo "['${pkg_names[$i]}']=${data_sizes[$i]}"
+        # This is a name reference that should be used by the caller.
+        # shellcheck disable=SC2034
+        size_map["${pkg_names[$i]}"]="${data_sizes[$i]}"
     done
-    echo ')'
 }
 
 # Setup
@@ -163,7 +166,8 @@ do_backup() {
     # Get list of user app package names
     pm list packages --user 0 > "$tmp/pm_all_pkgs.list"
     pm list packages -s --user 0 > "$tmp/pm_sys_pkgs.list"
-    local apps="$(grep -vf "$tmp/pm_sys_pkgs.list" "$tmp/pm_all_pkgs.list" | sed 's/package://g')"
+    local apps
+    apps="$(grep -vf "$tmp/pm_sys_pkgs.list" "$tmp/pm_all_pkgs.list" | sed 's/package://g')"
 
     # FIXME: OVERRIDE FOR TESTING
     apps="dev.kdrag0n.flutter.touchpaint
@@ -186,16 +190,19 @@ com.automattic.simplenote
     echo
 
     # Get map of app data sizes
-    declare -A app_data_sizes="$(get_app_data_sizes)"
+    declare -A app_data_sizes
+    get_app_data_sizes app_data_sizes
 
     # Back up apps
     local app
     for app in $apps
     do
         msg "Backing up $app..."
-        local appout="$backup_dir/$app"
+
+        local appout appinfo
+        appout="$backup_dir/$app"
         mkdir "$appout"
-        local appinfo="$(dumpsys package "$app")"
+        appinfo="$(dumpsys package "$app")"
 
         # cbackup metadata
         echo "$BACKUP_VERSION" > "$appout/backup_version.txt"
@@ -204,7 +211,8 @@ com.automattic.simplenote
         # APKs
         msg "    • APK"
         mkdir "$appout/apk"
-        local apkdir="$(grep "codePath=" <<< "$appinfo" | sed 's/^\s*codePath=//')"
+        local apkdir
+        apkdir="$(grep "codePath=" <<< "$appinfo" | sed 's/^\s*codePath=//')"
         cp "$apkdir/base.apk" "$apkdir/split_"* "$appout/apk"
 
         # Data
@@ -273,7 +281,8 @@ do_restore() {
         if [[ ! -f "$appdir/backup_version.txt" ]]; then
             die "Backup version is missing"
         else
-            local bver="$(cat "$appdir/backup_version.txt")"
+            local bver
+            bver="$(cat "$appdir/backup_version.txt")"
             if [[ "$bver" != "$BACKUP_VERSION" ]]; then
                 die "Incompatible backup version $bver, expected $BACKUP_VERSION"
             fi
@@ -292,10 +301,11 @@ do_restore() {
         if [[ -f "$appdir/installer_name.txt" ]]; then
             pm_install_args+=(-i "$(cat "$appdir/installer_name.txt")")
         fi
-        dbg "PM install args: ${pm_install_args[@]}"
+        dbg "PM install args: ${pm_install_args[*]}"
 
         # Install split APKs
-        local pm_session="$(pm install-create "${pm_install_args[@]}" | sed 's/^.*\[\([[:digit:]]*\)\].*$/\1/')"
+        local pm_session
+        pm_session="$(pm install-create "${pm_install_args[@]}" | sed 's/^.*\[\([[:digit:]]*\)\].*$/\1/')"
         dbg "PM session: $pm_session"
 
         local apk
@@ -303,33 +313,38 @@ do_restore() {
         do
             # We need to specify size because we're streaming it to pm through stdin
             # to avoid creating a temporary file
-            local apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
-            local split_name="$(basename "$apk")"
+            local apk_size split_name
+            apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
+            split_name="$(basename "$apk")"
 
             dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
-            cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" > /dev/null
+            pm install-write -S "$apk_size" "$pm_session" "$split_name" < "$apk" > /dev/null
         done
 
         pm install-commit "$pm_session" > /dev/null
-        local appinfo="$(dumpsys package "$app")"
+        local appinfo
+        appinfo="$(dumpsys package "$app")"
 
         # Data
         msg "    • Data"
         local datadir="/data/data/$app"
 
         dbg "Clearing placeholder app data"
-        rm -fr "$datadir/"*
-        local secontext="$(ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
+        rm -fr "${datadir:?}/"*
+        local secontext
+        # There's no other way to get the SELinux context.
+        # shellcheck disable=SC2012
+        secontext="$(ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
 
-        dbg "Extracting data with encryption args: ${encryption_args[@]}"
+        dbg "Extracting data with encryption args: ${encryption_args[*]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
             progress_cmd | \
             tar -C / -xf -
 
-        local uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
+        local uid
+        uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
         local gid_cache="$((uid + 10000))"
-        local app_id="$((uid - 10000))"
 
         dbg "Changing data owner to $uid and cache to $gid_cache"
         chown -R "$uid:$uid" "$datadir"
@@ -342,11 +357,11 @@ do_restore() {
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
         local perm
-        for perm in $(cat "$appdir/permissions.list")
+        while IFS= read -r perm
         do
             dbg "Granting permission $perm"
             pm grant --user 0 "$app" "$perm"
-        done
+        done < "$appdir/permissions.list"
 
         # SSAID
         if [[ -f "$appdir/ssaid.xml" ]]; then
