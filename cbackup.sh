@@ -303,15 +303,18 @@ do_restore() {
             dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
             cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" > /dev/null
         done
+
         pm install-commit "$pm_session" > /dev/null
         appinfo="$(dumpsys package "$app")"
 
         # Data
         msg "    • Data"
         datadir="/data/data/$app"
+
         dbg "Clearing placeholder app data"
         rm -fr "$datadir/"*
         secontext="$(ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
+
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
