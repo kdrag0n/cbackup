@@ -502,7 +502,7 @@ function do_restore() {
         # Battery optimization
         if [[ -f "$app_dir/battery_opt_disabled" ]]; then
             dbg "Whitelisting in deviceidle"
-            dumpsys deviceidle whitelist "+$app"
+            dumpsys deviceidle whitelist "+$app" > /dev/null
         fi
 
         # Installer name was already restored during APK installation, but we still
