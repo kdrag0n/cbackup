@@ -34,7 +34,7 @@ set -euo pipefail
 shopt -s nullglob dotglob extglob
 
 # Constants
-BACKUP_VERSION="1"
+BACKUP_VERSION="0"
 PASSWORD_CANARY="cbackup-valid"
 
 # Settings
