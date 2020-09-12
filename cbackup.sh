@@ -163,7 +163,7 @@ do_backup() {
     # Get list of user app package names
     pm list packages --user 0 > "$tmp/pm_all_pkgs.list"
     pm list packages -s --user 0 > "$tmp/pm_sys_pkgs.list"
-    apps="$(grep -vf "$tmp/pm_sys_pkgs.list" "$tmp/pm_all_pkgs.list" | sed 's/package://g')"
+    local apps="$(grep -vf "$tmp/pm_sys_pkgs.list" "$tmp/pm_all_pkgs.list" | sed 's/package://g')"
 
     # FIXME: OVERRIDE FOR TESTING
     apps="dev.kdrag0n.flutter.touchpaint
@@ -189,12 +189,13 @@ com.automattic.simplenote
     declare -A app_data_sizes="$(get_app_data_sizes)"
 
     # Back up apps
+    local app
     for app in $apps
     do
         msg "Backing up $app..."
-        appout="$backup_dir/$app"
+        local appout="$backup_dir/$app"
         mkdir "$appout"
-        appinfo="$(dumpsys package "$app")"
+        local appinfo="$(dumpsys package "$app")"
 
         # cbackup metadata
         echo "$BACKUP_VERSION" > "$appout/backup_version.txt"
@@ -203,7 +204,7 @@ com.automattic.simplenote
         # APKs
         msg "    • APK"
         mkdir "$appout/apk"
-        apkdir="$(grep "codePath=" <<< "$appinfo" | sed 's/^\s*codePath=//')"
+        local apkdir="$(grep "codePath=" <<< "$appinfo" | sed 's/^\s*codePath=//')"
         cp "$apkdir/base.apk" "$apkdir/split_"* "$appout/apk"
 
         # Data
@@ -246,7 +247,8 @@ com.automattic.simplenote
 
 do_restore() {
     # First pass to show the user a list of apps to restore
-    apps=()
+    local apps=()
+    local appdir
     for appdir in "$backup_dir/"*
     do
         dbg "Discovered app $appdir"
@@ -261,16 +263,17 @@ do_restore() {
     echo
     echo
 
+    local app
     for app in "${apps[@]}"
     do
-        appdir="$backup_dir/$app"
+        local appdir="$backup_dir/$app"
         msg "Restoring $app..."
 
         # Check version
         if [[ ! -f "$appdir/backup_version.txt" ]]; then
             die "Backup version is missing"
         else
-            bver="$(cat "$appdir/backup_version.txt")"
+            local bver="$(cat "$appdir/backup_version.txt")"
             if [[ "$bver" != "$BACKUP_VERSION" ]]; then
                 die "Incompatible backup version $bver, expected $BACKUP_VERSION"
             fi
@@ -284,7 +287,7 @@ do_restore() {
         # APKs
         msg "    • APK"
         # Install reason 2 = device restore
-        pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
+        local pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
         # Installer name
         if [[ -f "$appdir/installer_name.txt" ]]; then
             pm_install_args+=(-i "$(cat "$appdir/installer_name.txt")")
@@ -292,28 +295,31 @@ do_restore() {
         dbg "PM install args: ${pm_install_args[@]}"
 
         # Install split APKs
-        pm_session="$(pm install-create "${pm_install_args[@]}" | sed 's/^.*\[\([[:digit:]]*\)\].*$/\1/')"
+        local pm_session="$(pm install-create "${pm_install_args[@]}" | sed 's/^.*\[\([[:digit:]]*\)\].*$/\1/')"
         dbg "PM session: $pm_session"
+
+        local apk
         for apk in "$appdir/apk/"*
         do
             # We need to specify size because we're streaming it to pm through stdin
             # to avoid creating a temporary file
-            apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
-            split_name="$(basename "$apk")"
+            local apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
+            local split_name="$(basename "$apk")"
+
             dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
             cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" > /dev/null
         done
 
         pm install-commit "$pm_session" > /dev/null
-        appinfo="$(dumpsys package "$app")"
+        local appinfo="$(dumpsys package "$app")"
 
         # Data
         msg "    • Data"
-        datadir="/data/data/$app"
+        local datadir="/data/data/$app"
 
         dbg "Clearing placeholder app data"
         rm -fr "$datadir/"*
-        secontext="$(ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
+        local secontext="$(ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
 
         dbg "Extracting data with encryption args: ${encryption_args[@]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
@@ -321,9 +327,9 @@ do_restore() {
             progress_cmd | \
             tar -C / -xf -
 
-        uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
-        gid_cache="$((uid + 10000))"
-        app_id="$((uid - 10000))"
+        local uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
+        local gid_cache="$((uid + 10000))"
+        local app_id="$((uid - 10000))"
 
         dbg "Changing data owner to $uid and cache to $gid_cache"
         chown -R "$uid:$uid" "$datadir"
@@ -335,6 +341,7 @@ do_restore() {
 
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
+        local perm
         for perm in $(cat "$appdir/permissions.list")
         do
             dbg "Granting permission $perm"
