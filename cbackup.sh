@@ -41,9 +41,9 @@ PASSWORD_CANARY="cbackup-valid"
 tmp="/data/local/tmp/cbackup"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
-debug=true
+debug=false
 # WARNING: Hardcoded password FOR TESTING ONLY!
-#password="cbackup-test!"
+password="cbackup-test!"
 
 # Prints an error in bold red
 function err() {
@@ -407,6 +407,13 @@ do_restore() {
         local gid_cache="$((uid + 10000))"
         dbg "App cache GID is $gid_cache"
 
+        # Get SELinux context from the system-created data directory
+        local secontext
+        # There's no other way to get the SELinux context.
+        # shellcheck disable=SC2012
+        secontext="$(/system/bin/ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
+        dbg "App SELinux context is $secontext"
+
         # Finally, extract the app data
         dbg "Extracting data with encryption args: ${encryption_args[*]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
@@ -420,8 +427,9 @@ do_restore() {
         chown -R "$uid:$gid_cache" "$new_data_dir/"*cache*
 
         # Fix SELinux context
-        dbg "Restoring SELinux context"
-        /system/bin/restorecon -DR "$new_data_dir"
+        dbg "Updating SELinux context to $secontext"
+        # We need to use Android chcon to avoid "Operation not supported on transport endpoint" errors
+        /system/bin/chcon -hR "$secontext" "$new_data_dir"
 
         # Perform in-place Termux hotswap if necessary
         if $termux_inplace; then
