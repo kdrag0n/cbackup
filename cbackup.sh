@@ -479,7 +479,7 @@ function do_restore() {
         for perm in $(cat "$app_dir/permissions.list")
         do
             dbg "Granting permission $perm"
-            pm grant --user 0 "$app" "$perm"
+            pm grant --user 0 "$app" "$perm" || warn "Failed to grant permission $perm!"
         done
 
         # SSAID
