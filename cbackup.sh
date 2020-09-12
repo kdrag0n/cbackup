@@ -532,13 +532,13 @@ msg "========================"
 
 if [[ "$ssaid_restored" == "true" ]]; then
     warn "SSAIDs were restored
-===================
+====================
 Warning: Restored SSAIDs will be lost if you do not reboot IMMEDIATELY!"
 fi
 
 if [[ "$termux_restored" == "true" ]]; then
     warn "Termux was restored
-==================
+===================
 Please restart Termux as soon as possible to apply all changes.
 If you cannot restart now, running the `cd` command will will fix your current shell instance."
 fi
