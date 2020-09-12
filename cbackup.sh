@@ -41,9 +41,9 @@ PASSWORD_CANARY="cbackup-valid"
 tmp="/data/local/tmp/cbackup"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
-debug=false
-# FIXME: hardcoded password for testing
-password="cbackup-test!"
+debug=true
+# WARNING: Hardcoded password FOR TESTING ONLY!
+#password="cbackup-test!"
 
 # Prints an error in bold red
 function err() {
@@ -302,35 +302,52 @@ do_restore() {
             die "Incorrect password or corrupted backup!"
         fi
 
+        # Check whether we need special in-place restoration for Termux
+        local termux_inplace
+        if [[ "$PREFIX" == *"com.termux"* ]] && [[ "$app" == "com.termux" ]]; then
+            termux_inplace=true
+            dbg "Performing in-place Termux restore"
+        else
+            termux_inplace=false
+        fi
+
         # APKs
         msg "    • APK"
-        # Install reason 2 = device restore
-        local pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
-        # Installer name
-        if [[ -f "$appdir/installer_name.txt" ]]; then
-            pm_install_args+=(-i "$(cat "$appdir/installer_name.txt")")
+        if $termux_inplace; then
+            echo "      > Skipped because we're running in Termux"
+        else
+            # Proceed with APK installation
+
+            # Install reason 2 = device restore
+            local pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
+            # Installer name
+            if [[ -f "$appdir/installer_name.txt" ]]; then
+                pm_install_args+=(-i "$(cat "$appdir/installer_name.txt")")
+            fi
+            dbg "PM install args: ${pm_install_args[*]}"
+
+            # Install split APKs
+            local pm_session
+            pm_session="$(pm install-create "${pm_install_args[@]}" | sed 's/^.*\[\([[:digit:]]*\)\].*$/\1/')"
+            dbg "PM session: $pm_session"
+
+            local apk
+            for apk in "$appdir/apk/"*
+            do
+                # We need to specify size because we're streaming it to pm through stdin
+                # to avoid creating a temporary file
+                local apk_size split_name
+                apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
+                split_name="$(basename "$apk")"
+
+                dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
+                cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" > /dev/null
+            done
+
+            pm install-commit "$pm_session" > /dev/null
         fi
-        dbg "PM install args: ${pm_install_args[*]}"
 
-        # Install split APKs
-        local pm_session
-        pm_session="$(pm install-create "${pm_install_args[@]}" | sed 's/^.*\[\([[:digit:]]*\)\].*$/\1/')"
-        dbg "PM session: $pm_session"
-
-        local apk
-        for apk in "$appdir/apk/"*
-        do
-            # We need to specify size because we're streaming it to pm through stdin
-            # to avoid creating a temporary file
-            local apk_size split_name
-            apk_size="$(wc -c "$apk" | cut -d' ' -f1)"
-            split_name="$(basename "$apk")"
-
-            dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
-            pm install-write -S "$apk_size" "$pm_session" "$split_name" < "$apk" > /dev/null
-        done
-
-        pm install-commit "$pm_session" > /dev/null
+        # Get info of newly installed app
         local appinfo
         appinfo="$(dumpsys package "$app")"
 
@@ -338,39 +355,107 @@ do_restore() {
         msg "    • Data"
         local datadir="/data/data/$app"
 
-        dbg "Clearing placeholder app data"
-        rm -fr "${datadir:?}/"*
+        # We can't delete and extract directly to the Termux root because we
+        # need to use Termux-provided tools for extracting app data
+        local out_root_dir
+        if $termux_inplace; then
+            # This temporary output directory must be in /data/data to apply the
+            # correct FBE key, so we can avoid a copy when swapping directories
+            out_root_dir="$(dirname "$datadir")/._cbackup_termux_inplace_restore"
+            rm -fr "$out_root_dir"
+            mkdir -p "$out_root_dir"
+        else
+            out_root_dir="/"
+
+            # At this point, we can delete Android's placeholder app data for
+            # normal apps, but deleting it for Termux is NOT safe!
+            dbg "Clearing placeholder app data"
+            rm -fr "${datadir:?}/"*
+        fi
+
+        # Create new data directory for in-place Termux restore
+        # No extra slash here because both are supposed to be absolute paths
+        local new_data_dir="$out_root_dir$datadir"
+        mkdir -p "$new_data_dir"
+        chmod 700 "$new_data_dir"
+
+        # Get UID and GIDs
+        local uid
+        uid="$(grep "userId=" <<< "$appinfo" | head -1 | sed 's/^\s*userId=//')"
+        local gid_cache="$((uid + 10000))"
+
+        # Get SELinux context from the system-created data directory
         local secontext
         # There's no other way to get the SELinux context.
         # shellcheck disable=SC2012
-        secontext="$(ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
+        secontext="$(/system/bin/ls -a1Z "$datadir" | head -1 | cut -d' ' -f1)"
 
+        # Finally, extract the app data
         dbg "Extracting data with encryption args: ${encryption_args[*]}"
         decrypt_file "$appdir/data.tar.zst.enc" | \
             zstd -d -T0 - | \
             progress_cmd | \
-            tar -C / -xf -
+            tar -C "$out_root_dir" -xf -
 
-        local uid
-        uid="$(grep "userId=" <<< "$appinfo" | sed 's/^\s*userId=//')"
-        local gid_cache="$((uid + 10000))"
+        # Fix ownership
+        dbg "Updating data owner to $uid and cache to $gid_cache"
+        chown -R "$uid:$uid" "$new_data_dir"
+        chown -R "$uid:$gid_cache" "$new_data_dir/"*cache*
 
-        dbg "Changing data owner to $uid and cache to $gid_cache"
-        chown -R "$uid:$uid" "$datadir"
-        chown -R "$uid:$gid_cache" "$datadir/"*cache*
-
-        dbg "Changing SELinux context to $secontext"
+        # Fix SELinux context
+        dbg "Updating SELinux context to $secontext"
         # We need to use Android chcon to avoid "Operation not supported on transport endpoint" errors
-        /system/bin/chcon -hR "$secontext" "/data/data/$app"
+        /system/bin/chcon -hR "$secontext" "$new_data_dir"
+
+        # Perform in-place Termux hotswap if necessary
+        if $termux_inplace; then
+            dbg "Hotswapping Termux data for in-place restore"
+
+            # For efficient in-place restore, we need to delete the current app
+            # data directory entirely so we can use mv to perform a quick swap
+            dbg "Deleting current app data directory"
+            rm -fr "$datadir"
+
+            # ---------------------- DANGER DANGER DANGER ----------------------
+            # We need to be careful with the commands we use here because Termux
+            # executables are no longer available! This backup script will crash
+            # and the user will be left with a broken Termux install (among other
+            # unrestored apps) if anything in here breaks. Only Android system
+            # executables and shell builtins are safe to use here.
+            # ---------------------- DANGER DANGER DANGER ----------------------
+
+            # We can finally swap data directories...
+            dbg "Switching to new data directory"
+            LD_PRELOAD= /system/bin/mv "$new_data_dir" "$datadir"
+
+            # Update cwd for the new directory inode
+            # Fall back to Termux HOME if cwd doesn't exist in the restored env
+            cd "$PWD" || cd "$HOME"
+
+            # Rehash PATH cache since we might have new executable paths now
+            hash -r
+
+            # Check for the presence of optional commands again
+            check_optional_cmds
+
+            # ------------------------- END OF DANGER --------------------------
+            # At this point, the backup's Termux install has been restored and
+            # our shell state has been updated to account for the new environment,
+            # so we can safely use all commands again.
+            # ------------------------- END OF DANGER --------------------------
+
+            # Clean up temporary directory structure left over from swapping
+            rm -fr "$out_root_dir"
+        fi
 
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
         local perm
-        while IFS= read -r perm
+        for perm in $(cat "$appdir/permissions.list")
         do
             dbg "Granting permission $perm"
             pm grant --user 0 "$app" "$perm"
-        done < "$appdir/permissions.list"
+        done
 
         # SSAID
         if [[ -f "$appdir/ssaid.xml" ]]; then
