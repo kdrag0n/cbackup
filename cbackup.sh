@@ -222,7 +222,9 @@ function do_backup() {
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
         grep "granted=true, flags=" <<< "$app_info" | \
-            sed 's/^\s*\(.*\): granted.*$/\1/g' > "$app_out/permissions.list" \
+            sed 's/^\s*\(.*\): granted.*$/\1/g' | \
+            sort | \
+            uniq > "$app_out/permissions.list" \
             || true
 
         # SSAID
