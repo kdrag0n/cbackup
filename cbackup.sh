@@ -105,8 +105,8 @@ function ask_password() {
     set -u
 }
 
-function encrypt_stream() {
-    PASSWORD="$password" openssl enc "${encryption_args[@]}" -pass env:PASSWORD
+function encrypt_to_file() {
+    PASSWORD="$password" openssl enc -out "$1" "${encryption_args[@]}" -pass env:PASSWORD
 }
 
 function decrypt_file() {
@@ -199,7 +199,7 @@ com.automattic.simplenote
 
         # cbackup metadata
         echo "$BACKUP_VERSION" > "$appout/backup_version.txt"
-        echo -n "$PASSWORD_CANARY" | encrypt_stream > "$appout/password_canary.bin"
+        echo -n "$PASSWORD_CANARY" | encrypt_to_file "$appout/password_canary.bin"
 
         # APKs
         msg "    • APK"
@@ -213,7 +213,7 @@ com.automattic.simplenote
         tar -cf - "data/data/$app" "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
             progress_cmd -s "${app_data_sizes[$app]}" |
             zstd -T0 - | \
-            encrypt_stream > "$appout/data.tar.zst.enc"
+            encrypt_to_file "$appout/data.tar.zst.enc"
         popd > /dev/null
 
         # Permissions
