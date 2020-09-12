@@ -43,7 +43,7 @@ backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
 debug=false
 # WARNING: Hardcoded password FOR TESTING ONLY!
-password="cbackup-test!"
+#password="cbackup-test!"
 
 # Prints an error in bold red
 function err() {
