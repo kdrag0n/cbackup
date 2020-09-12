@@ -229,7 +229,9 @@ com.google.android.inputmethod.latin
         # Data
         msg "    • Data"
         pushd / > /dev/null
-        tar -cf - "data/data/$app" "data/data/$app/"!(@(cache|code_cache|no_backup)) | \
+        tar -cf - "data/data/$app" \
+                  "data/data/$app/"!(@(cache|code_cache|no_backup)) \
+                  "data/user_de/0/$app/"!(@(cache|code_cache|no_backup)) | \
             progress_cmd -s "${app_data_sizes[$app]}" |
             zstd -T0 - | \
             encrypt_to_file "$app_out/data.tar.zst.enc"
