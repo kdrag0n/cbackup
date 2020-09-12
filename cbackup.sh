@@ -210,10 +210,10 @@ com.google.android.inputmethod.latin
     do
         msg "Backing up $app..."
 
-        local appout appinfo
+        local appout app_info
         appout="$backup_dir/$app"
         mkdir "$appout"
-        appinfo="$(dumpsys package "$app")"
+        app_info="$(dumpsys package "$app")"
 
         # cbackup metadata
         echo "$BACKUP_VERSION" > "$appout/backup_version.txt"
@@ -223,7 +223,7 @@ com.google.android.inputmethod.latin
         msg "    • APK"
         mkdir "$appout/apk"
         local apkdir
-        apkdir="$(grep "codePath=" <<< "$appinfo" | sed 's/^\s*codePath=//')"
+        apkdir="$(grep "codePath=" <<< "$app_info" | sed 's/^\s*codePath=//')"
         cp "$apkdir/base.apk" "$apkdir/split_"* "$appout/apk"
 
         # Data
@@ -237,7 +237,7 @@ com.google.android.inputmethod.latin
 
         # Permissions
         msg "    • Other (permissions, SSAID, battery optimization, installer name)"
-        grep "granted=true, flags=" <<< "$appinfo" | \
+        grep "granted=true, flags=" <<< "$app_info" | \
             sed 's/^\s*\(.*\): granted.*$/\1/g' > "$appout/permissions.list" \
             || true
 
@@ -252,8 +252,8 @@ com.google.android.inputmethod.latin
         fi
 
         # Installer name
-        if grep -q "installerPackageName=" <<< "$appinfo"; then
-            grep "installerPackageName=" <<< "$appinfo" | \
+        if grep -q "installerPackageName=" <<< "$app_info"; then
+            grep "installerPackageName=" <<< "$app_info" | \
                 sed 's/^\s*installerPackageName=//' > "$appout/installer_name.txt"
         fi
 
@@ -367,8 +367,8 @@ function do_restore() {
         fi
 
         # Get info of newly installed app
-        local appinfo
-        appinfo="$(dumpsys package "$app")"
+        local app_info
+        app_info="$(dumpsys package "$app")"
 
         # Data
         msg "    • Data"
@@ -403,7 +403,7 @@ function do_restore() {
 
         # Get UID and GIDs
         local uid
-        uid="$(grep "userId=" <<< "$appinfo" | head -1 | sed 's/^\s*userId=//')"
+        uid="$(grep "userId=" <<< "$app_info" | head -1 | sed 's/^\s*userId=//')"
         dbg "App UID/GID is $uid"
         local gid_cache="$((uid + 10000))"
         dbg "App cache GID is $gid_cache"
