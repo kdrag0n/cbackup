@@ -165,7 +165,7 @@ function check_optional_cmds() {
 
 check_optional_cmds
 
-do_backup() {
+function do_backup() {
     rm -fr "$backup_dir"
     mkdir -p "$backup_dir"
 
@@ -264,7 +264,7 @@ com.google.android.inputmethod.latin
     cp "$0" "$backup_dir/restore.sh"
 }
 
-do_restore() {
+function do_restore() {
     # First pass to show the user a list of apps to restore
     local apps=()
     local app_dir
