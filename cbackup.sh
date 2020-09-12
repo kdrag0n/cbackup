@@ -334,7 +334,7 @@ function do_restore() {
             # permissions, etc.
             if grep -q "$app" <<< "$installed_apps"; then
                 dbg "Uninstalling old copy of app"
-                pm uninstall --user 0 "$app"
+                pm uninstall --user 0 "$app" > /dev/null
             fi
 
             # Install reason 2 = device restore
