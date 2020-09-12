@@ -77,6 +77,34 @@ function dbg() {
     fi
 }
 
+function ask_password() {
+    local confirm="$1"
+
+    # password is likely to be unbound here
+    set +u
+    if [[ -z "$password" ]]; then
+        set -u
+
+        if [[ "$confirm" == "true" ]]; then
+            read -sp "Enter password for backup: " password
+            echo
+            read -sp "Confirm password: " password2
+            echo
+
+            if [[ "$password2" != "$password" ]]; then
+                die "Mismatching passwords!"
+            fi
+
+            unset -v password2
+            echo
+        else
+            read -sp "Enter backup password: " password
+        fi
+    fi
+
+    set -u
+}
+
 function encrypt_stream() {
     PASSWORD="$password" openssl enc "${encryption_args[@]}" -pass env:PASSWORD
 }
@@ -129,6 +157,8 @@ fi
 do_backup() {
     rm -fr "$backup_dir"
     mkdir -p "$backup_dir"
+
+    ask_password true
 
     # Get list of user app package names
     pm list packages --user 0 > "$tmp/pm_all_pkgs.list"
@@ -223,6 +253,8 @@ do_restore() {
         app="$(basename "$appdir")"
         apps+=("$app")
     done
+
+    ask_password false
 
     echo "Apps to restore:"
     tr ' ' '\n' <<< "${apps[@]}"
