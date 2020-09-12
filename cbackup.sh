@@ -543,6 +543,8 @@ echo
 msg "========================"
 msg "Backup/restore finished!"
 msg "========================"
+echo
+echo
 
 if [[ "$ssaid_restored" == "true" ]]; then
     warn "SSAIDs were restored
