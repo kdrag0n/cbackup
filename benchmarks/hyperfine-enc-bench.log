@@ -1,0 +1,33 @@
+[mroot[38:5:242m@localhost[39m [34m/data/data/com.termux/files/home
+[m[35m❯[39m [32mhyperfine[39m -p [33m'echo 3 > /proc/sys/vm/drop_caches'[39m [33m'tar -cf - /data/data/com.termux | cat > /dev/null'[39m [33m'tar -cf - /data
+[m[33m/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 -aes-128-ctr -pass env:PASSWORD > /dev/null'[39m [33m'tar 
+[m[33m-cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 -aes-256-ctr -pass env:PASSWORD > /dev/
+[m[33mnull'[39m [33m'tar -cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 -chacha20 -pass env:PASSWORD
+[m[33m > /dev/null'
+[m[1mBenchmark #1[22m: tar -cf - /data/data/com.termux | cat > /dev/null
+[m[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m17.394 s[22;39m ± [32m 0.615 s[39m    [User: [34m777.4 ms[39m, System: [34m9817.6 ms[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m16.098 s[39m … [35m18.233 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #2[22m: tar -cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 -aes-128-ctr -pass en
+[mv:PASSWORD > /dev/null
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m18.144 s[22;39m ± [32m 0.676 s[39m    [User: [34m2.563 s[39m, System: [34m8.973 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m17.051 s[39m … [35m19.148 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #3[22m: tar -cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 -aes-256-ctr -pass en
+[mv:PASSWORD > /dev/null
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m18.983 s[22;39m ± [32m 0.515 s[39m    [User: [34m2.861 s[39m, System: [34m9.535 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m18.210 s[39m … [35m19.736 s[39m    [2m10 runs
+[m 
+[m[1mBenchmark #4[22m: tar -cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 -chacha20 -pass env:P
+[mASSWORD > /dev/null
+[m  Time ([1;32mmean[22;39m ± [32mσ[39m):     [1;32m19.130 s[22;39m ± [32m 0.895 s[39m    [User: [34m4.169 s[39m, System: [34m8.136 s[39m]
+[m  Range ([36mmin[39m … [35mmax[39m):   [36m17.759 s[39m … [35m20.672 s[39m    [2m10 runs
+[m 
+[m[1mSummary
+[m  '[36mtar -cf - /data/data/com.termux | cat > /dev/null[39m' ran
+[m[1;32m    1.04[22;39m ± [32m0.05[39m times faster than '[35mtar -cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 
+[m[35m-aes-128-ctr -pass env:PASSWORD > /dev/null[39m'
+[m[1;32m    1.09[22;39m ± [32m0.05[39m times faster than '[35mtar -cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 
+[m[35m-aes-256-ctr -pass env:PASSWORD > /dev/null[39m'
+[m[1;32m    1.10[22;39m ± [32m0.06[39m times faster than '[35mtar -cf - /data/data/com.termux | PASSWORD=cbackup-test openssl enc -pbkdf2 -iter 1 
+[m[35m-chacha20 -pass env:PASSWORD > /dev/null[39m'
