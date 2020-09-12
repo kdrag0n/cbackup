@@ -38,7 +38,7 @@ BACKUP_VERSION="1"
 PASSWORD_CANARY="cbackup-valid"
 
 # Settings
-tmp="/data/local/tmp/cbackup"
+tmp_dir="/data/local/tmp/cbackup"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
 debug=false
@@ -143,8 +143,8 @@ function get_app_data_sizes() {
 # Setup
 ssaid_restored=false
 termux_restored=false
-rm -fr "$tmp"
-mkdir -p "$tmp"
+rm -fr "$tmp_dir"
+mkdir -p "$tmp_dir"
 
 # Degrade gracefully if optional commands are not available
 # This is a function so we can update it after in-place Termux restoration
@@ -172,10 +172,10 @@ do_backup() {
     ask_password true
 
     # Get list of user app package names
-    pm list packages --user 0 > "$tmp/pm_all_pkgs.list"
-    pm list packages -s --user 0 > "$tmp/pm_sys_pkgs.list"
+    pm list packages --user 0 > "$tmp_dir/pm_all_pkgs.list"
+    pm list packages -s --user 0 > "$tmp_dir/pm_sys_pkgs.list"
     local apps
-    apps="$(grep -vf "$tmp/pm_sys_pkgs.list" "$tmp/pm_all_pkgs.list" | sed 's/package://g')"
+    apps="$(grep -vf "$tmp_dir/pm_sys_pkgs.list" "$tmp_dir/pm_all_pkgs.list" | sed 's/package://g')"
 
     # FIXME: OVERRIDE FOR TESTING
     apps="dev.kdrag0n.flutter.touchpaint
@@ -535,7 +535,7 @@ else
 fi
 
 # Cleanup
-rm -fr "$tmp"
+rm -fr "$tmp_dir"
 
 echo
 echo
