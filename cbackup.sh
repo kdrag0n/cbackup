@@ -429,20 +429,22 @@ do_restore() {
         if $termux_inplace; then
             dbg "Hotswapping Termux data for in-place restore"
 
-            # For efficient in-place restore, we need to delete the current app
-            # data directory entirely so we can use mv to perform a quick swap
-            dbg "Deleting current app data directory"
-            rm -fr "$datadir"
+            # Swap out the old one immediately and defer cleanup to later
+            # This does leave a small window during which no directory is present,
+            # but we can't get around that without using the relatively new
+            # renameat(2) syscall, which isn't exposed by coreutils.
+            dbg "Swapping out current data directory"
+            mv "$datadir" "$out_root_dir/_old_data"
 
             # ---------------------- DANGER DANGER DANGER ----------------------
             # We need to be careful with the commands we use here because Termux
             # executables are no longer available! This backup script will crash
             # and the user will be left with a broken Termux install (among other
             # unrestored apps) if anything in here breaks. Only Android system
-            # executables and shell builtins are safe to use here.
+            # executables and shell builtins are safe to use in here.
             # ---------------------- DANGER DANGER DANGER ----------------------
 
-            # We can finally swap data directories...
+            # Swap in the new one ASAP
             dbg "Switching to new data directory"
             LD_PRELOAD= /system/bin/mv "$new_data_dir" "$datadir"
 
@@ -462,7 +464,9 @@ do_restore() {
             # so we can safely use all commands again.
             # ------------------------- END OF DANGER --------------------------
 
-            # Clean up temporary directory structure left over from swapping
+            # Clean up temporary directory structures and old data directory left
+            # over from swapping
+            dbg "Deleting old app data directory"
             rm -fr "$out_root_dir"
 
             # Set flag to print Termux restoration warning
