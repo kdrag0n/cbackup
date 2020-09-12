@@ -190,6 +190,7 @@ com.minar.birday
 net.redsolver.noteless
 com.automattic.simplenote
 com.termux
+com.termux.styling
 "
 
     echo "Apps to backup:"
