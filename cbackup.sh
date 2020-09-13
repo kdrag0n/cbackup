@@ -329,8 +329,6 @@ function do_restore() {
                 -t
                 # Installed due to device restore
                 --install-reason 2
-                # Don't auto-grant permissions
-                --restrict-permissions
                 # Only install for user 0
                 --user 0
                 # Set expected package name
