@@ -411,7 +411,8 @@ function do_restore() {
         dbg "App cache GID is $gid_cache"
 
         # Get SELinux context from the system-created data directory
-        # ls is not ideal, but there's no other way to get the SELinux context.
+        # Parsing the output of ls is not ideal, but Termux doesn't come with any
+        # tools for this.
         # TODO: Fix the sporadic failure codes instead of silencing them with a declaration
         # shellcheck disable=SC2012
         local secontext="$(/system/bin/ls -a1Z "$data_dir" | head -1 | cut -d' ' -f1)"
