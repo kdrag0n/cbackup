@@ -325,6 +325,8 @@ function do_restore() {
 
             # Prepare to invoke pm install
             local pm_install_args=(
+                # Allow test packages (i.e. ones installed by Android Studio's "Run" button)
+                -t
                 # Installed due to device restore
                 --install-reason 2
                 # Don't auto-grant permissions
