@@ -350,6 +350,7 @@ function do_restore() {
             done
 
             pm install-commit "$pm_session" > /dev/null
+            pm suspend --user 0 "$app" > /dev/null
         fi
 
         # Get info of newly installed app
@@ -495,8 +496,10 @@ function do_restore() {
             dumpsys deviceidle whitelist "+$app" > /dev/null
         fi
 
-        # Installer name was already restored during APK installation, but we still
-        # print it in this section to make the output consistent with backup mode
+        # Unsuspend app now that restoration is finished
+        if ! $termux_inplace; then
+            pm unsuspend --user 0 "$app" > /dev/null
+        fi
 
         echo
     done
