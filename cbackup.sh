@@ -323,8 +323,17 @@ function do_restore() {
                 pm uninstall --user 0 "$app" > /dev/null
             fi
 
-            # Install reason 2 = device restore
-            local pm_install_args=(--install-reason 2 --restrict-permissions --user 0 --pkg "$app")
+            # Prepare to invoke pm install
+            local pm_install_args=(
+                # Installed due to device restore
+                --install-reason 2
+                # Don't auto-grant permissions
+                --restrict-permissions
+                # Only install for user 0
+                --user 0
+                # Set expected package name
+                --pkg "$app"
+            )
             # Installer name
             if [[ -f "$app_dir/installer_name.txt" ]]; then
                 pm_install_args+=(-i "$(cat "$app_dir/installer_name.txt")")
