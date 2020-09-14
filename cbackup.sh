@@ -419,12 +419,6 @@ function do_restore() {
             mkdir -p "$out_root_dir"
         else
             out_root_dir="/"
-
-            # At this point, we can delete Android's placeholder app data for
-            # normal apps, but deleting it for Termux is NOT safe!
-            dbg "Clearing placeholder app data"
-            rm -fr "${data_dir:?}/"*
-            rm -fr "${de_data_dir:?}/"*
         fi
 
         # Create new data directory for in-place Termux restore
