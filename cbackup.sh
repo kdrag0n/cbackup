@@ -452,11 +452,16 @@ function do_restore() {
         dbg "App SELinux context is $secontext"
 
         # Finally, extract the app data
-        dbg "Extracting data with encryption args: ${encryption_args[*]}"
-        decrypt_file "$app_dir/data.tar.zst.enc" | \
-            zstd -d -T0 - | \
-            progress_cmd | \
-            tar -C "$out_root_dir" -xf -
+        local data_archive="$app_dir/data.tar.zst.enc"
+        if [[ -f "$data_archive" ]]; then
+            dbg "Extracting data with encryption args: ${encryption_args[*]}"
+            decrypt_file "$app_dir/data.tar.zst.enc" | \
+                zstd -d -T0 - | \
+                progress_cmd | \
+                tar -C "$out_root_dir" -xvf -
+        else
+            echo "No data backup found"
+        fi
 
         # Fix ownership
         dbg "Updating data owner to $uid and cache to $gid_cache"
