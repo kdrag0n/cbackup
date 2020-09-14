@@ -450,7 +450,7 @@ function do_restore() {
             decrypt_file "$app_dir/data.tar.zst.enc" | \
                 zstd -d -T0 - | \
                 progress_cmd | \
-                tar -C "$out_root_dir" -xvf -
+                tar -C "$out_root_dir" -xf -
         else
             echo "No data backup found"
         fi
