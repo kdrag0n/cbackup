@@ -52,6 +52,27 @@ cbackup **does not** include:
 
 Some security-centric apps that use device-bound keystore keys to encrypt their data are included in a builtin blacklist, so their data will not be backed up.
 
+## Usage
+
+If you run the script with no arguments, it will default to creating a new backup located at `backup_dir` its settings, which is set to `/sdcard/cbackup` by default.
+
+cbackup accepts the following optional positional arguments:
+
+- First argument: mode — `backup` or `restore`
+- Second argument: backup path
+
+Example to restore from a backup located at `/data/local/tmp/cbackup`:
+
+```bash
+./cbackup.sh restore /data/local/tmp/cbackup
+```
+
+And to back up to `/data/local/tmp/cbackup`:
+
+```bash
+./cbackup.sh backup /data/local/tmp/cbackup
+```
+
 ## Storage format
 
 The preliminary v0 storage format is currently used by the cbackup shell script.
