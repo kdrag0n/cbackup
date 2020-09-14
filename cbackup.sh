@@ -456,9 +456,13 @@ function do_restore() {
         fi
 
         # Fix ownership
-        dbg "Updating data owner to $uid and cache to $gid_cache"
+        dbg "Updating data owner to $uid"
         chown -R "$uid:$uid" "$new_data_dir" "$de_data_dir"
-        chown -R "$uid:$gid_cache" "$new_data_dir/"*cache* "$de_data_dir/"*cache*
+        local cache_dirs=("$new_data_dir/"*cache* "$de_data_dir/"*cache*)
+        if [[ ${#cache_dirs[@]} -ne 0 ]]; then
+            dbg "Updating cache owner group to $gid_cache"
+            chown -R "$uid:$gid_cache" "$new_data_dir/"*cache* "$de_data_dir/"*cache*
+        fi
 
         # Fix SELinux context
         dbg "Updating SELinux context to $secontext"
