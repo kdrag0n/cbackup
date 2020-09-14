@@ -32,6 +32,23 @@ Using a custom path outside of `/sdcard`, e.g. `/data/local/tmp/cbackup`, will w
 
 If you're worried about piping and running a random script, the [quickstart script](https://github.com/kdrag0n/cbackup/blob/master/termux-quickstart.sh) is short and thoroughly commented, so feel free to download it and read it yourself before running it.
 
+## Scope
+
+cbackup includes the following data for each app:
+
+- App packages (APKs, including split APKs from Android App Bundles)
+- App private data (excluding cache and data explicitly marked as no-backup)
+- Per-app Android device IDs (SSAIDs; only restored if you reboot immediately after restoring)
+- Granted dangerous runtime permissions
+- Whether battery optimization is enabled
+- Name of the installer app that installed the app in question, e.g. Play Store
+
+cbackup **does not** include:
+
+- Account information registered with Android's AccountManager service
+- App external data stored in `/sdcard/Android/data`
+- OBBs stored in `/sdcard/Android/obb`, e.g. game resources
+
 ## Storage format
 
 The preliminary v0 storage format is currently used by the cbackup shell script.
