@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 
+# Print executed commands and exit on error
+set -ve
+
 # cbackup Termux quickstart script
 # https://git.io/JUl3K
 # Run script: sh -c "$(curl -LSs https://git.io/JUl3K)"
