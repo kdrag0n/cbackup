@@ -48,6 +48,7 @@ cbackup **does not** include:
 - Account information registered with Android's AccountManager service
 - App external data stored in `/sdcard/Android/data`
 - OBBs stored in `/sdcard/Android/obb`, e.g. game resources
+- Device-bound keystore encryption keys (not possible to extract by design)
 
 ## Storage format
 
