@@ -43,11 +43,11 @@ All data related to each app is stored in a folder with the app's package name. 
 - `backup_version.txt`: plain-text file containing `0\n`
 - `password_canary.enc`: encrypted file containing `cbackup-valid`
 - `base.apk`: unencrypted base APK file
-- `data.tar.zst.enc`: encrypted tarball archive containing app data, compressed with Zstandard before encrypting
 
 The following files may or may not be present, depending on what data is associated with the app that is being backed up:
 
 - `split_config.*.apk`: unencrypted additional split APKs with resources
+- `data.tar.zst.enc`: encrypted tarball archive containing app data, compressed with Zstandard before encrypting
 - `permissions.list`: unencrypted list of granted runtime permissions
 - `ssaid.xml`: system-generated SSAID entry from the SSAID settings XML
 - `battery_opt_disabled`: empty file, the presence of this file indicates that battery optimization is disabled
