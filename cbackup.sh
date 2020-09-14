@@ -38,7 +38,7 @@ BACKUP_VERSION="0"
 PASSWORD_CANARY="cbackup-valid"
 
 # Settings
-tmp_dir="/data/local/tmp/cbackup"
+tmp_dir="/data/local/tmp/._cbackup_tmp"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
 debug=false
