@@ -231,12 +231,26 @@ function do_backup() {
             echo "Skipping data backup because this app is blacklisted"
         else
             pushd / > /dev/null
-            tar -cf - "data/data/$app" \
-                    "data/data/$app/"!(@(cache|code_cache|no_backup)) \
-                    "data/user_de/0/$app/"!(@(cache|code_cache|no_backup)) | \
-                progress_cmd -s "${app_data_sizes[$app]}" |
-                zstd -T0 - | \
-                encrypt_to_file "$app_out/data.tar.zst.enc"
+
+            # Collect list of files
+            local files=(
+                # CE data for user 0
+                "data/data/$app/"!(@(cache|code_cache|no_backup)) \
+                # DE data for user 0
+                "data/user_de/0/$app/"!(@(cache|code_cache|no_backup))
+            )
+
+            # Skip backup if file list is empty
+            if [[ ${#files[@]} -eq 0 ]]; then
+                echo "Skipping data backup because this app has no data"
+            else
+                # Finally, perform backup if we have files to back up
+                tar -cf - "${files[@]}" | \
+                    progress_cmd -s "${app_data_sizes[$app]}" |
+                    zstd -T0 - | \
+                    encrypt_to_file "$app_out/data.tar.zst.enc"
+            fi
+
             popd > /dev/null
         fi
 
