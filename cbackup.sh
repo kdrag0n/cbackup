@@ -44,6 +44,11 @@ encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
 debug=false
 # WARNING: Hardcoded password FOR TESTING ONLY!
 #password="cbackup-test!"
+# Known broken/problemtic apps to ignore entirely
+app_blacklist=(
+    # Restoring Magisk Manager may cause problems with root access
+    com.topjohnwu.magisk
+)
 # Known broken/problemtic apps to exclude data for
 app_data_blacklist=(
     # Device-bound keystore encryption
@@ -183,6 +188,11 @@ function do_backup() {
     pm list packages -s --user 0 > "$tmp_dir/pm_sys_pkgs.list"
     local apps
     apps="$(grep -vf "$tmp_dir/pm_sys_pkgs.list" "$tmp_dir/pm_all_pkgs.list" | sed 's/package://g')"
+
+    # Remove ignored apps
+    dbg "Ignoring apps: ${app_blacklist[*]}"
+    tr ' ' '\n' <<< "${app_blacklist[*]}" > "$tmp_dir/pm_ignored.list"
+    apps="$(grep -vf "$tmp_dir/pm_ignored.list" <<< "$apps")"
 
     echo "Apps to backup:"
     echo "$apps"
