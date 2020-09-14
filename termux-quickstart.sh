@@ -15,4 +15,5 @@ curl -O https://raw.githubusercontent.com/kdrag0n/cbackup/master/cbackup.sh
 chmod +x cbackup.sh
 
 # Finally, run the downloaded script and replace the quickstart script's shell with it
-exec sudo bash cbackup.sh
+# Arguments passed to a `sh -c` pipe start at $0, so we need to include it explicitly
+exec sudo bash cbackup.sh "$0" "$@"
