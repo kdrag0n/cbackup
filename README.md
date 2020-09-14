@@ -52,6 +52,8 @@ cbackup **does not** include:
 
 Some security-centric apps that use device-bound keystore keys to encrypt their data are included in a builtin blacklist, so their data will not be backed up.
 
+Only apps installed in the primary user profile (Android user ID 0) will be backed up. Work profiles and other users will be excluded.
+
 ## Usage
 
 If you run the script with no arguments, it will default to creating a new backup located at `backup_dir` its settings, which is set to `/sdcard/cbackup` by default.
