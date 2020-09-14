@@ -50,6 +50,8 @@ cbackup **does not** include:
 - OBBs stored in `/sdcard/Android/obb`, e.g. game resources
 - Device-bound keystore encryption keys (not possible to extract by design)
 
+Some security-centric apps that use device-bound keystore keys to encrypt their data are included in a builtin blacklist, so their data will not be backed up.
+
 ## Storage format
 
 The preliminary v0 storage format is currently used by the cbackup shell script.
