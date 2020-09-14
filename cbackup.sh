@@ -431,10 +431,8 @@ function do_restore() {
         # No extra slash here because both are supposed to be absolute paths
         local new_data_dir="$out_root_dir$data_dir"
         dbg "New temporary data directory is $new_data_dir"
-        if $termux_inplace; then
-            mkdir -p "$new_data_dir"
-            chmod 700 "$new_data_dir"
-        fi
+        mkdir -p "$new_data_dir"
+        chmod 700 "$new_data_dir"
 
         # Get UID and GIDs
         local uid
