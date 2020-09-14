@@ -75,6 +75,29 @@ And to back up to `/data/local/tmp/cbackup`:
 ./cbackup.sh backup /data/local/tmp/cbackup
 ```
 
+## Security
+
+Encryption is mandatory.
+
+App data archives are encrypted with AES-256-CTR using the OpenSSL command-line tool. The encryption key is derived from the provided password with 200,001 iterations of PBKDF2-HMAC-SHA256, with a random salt for each encrypted file. Because the salt fed into PBKDF2 is random and not tracked across different runs of the OpenSSL tool, the encryption key and IV change for every file.
+
+Each app also contains a password canary, which is a file encrypted with the same password and parameters that just contains a constant string in it to verify whther the given password is correct.
+
+App packages and names are not encrypted, so anyone can see which apps you have backed up. It is also possible for an adversary to tamper with the app packages and inject spyware or other data exfiltration code into them, as the signatures are not verified to match the ones that were used when the app was initially backed up.
+
+AES-256-CTR does not have error propagation or any form of MAC, so an adversary can manipulate the data archives to corrupt them. Future versions of cbackup will use an AEAD such as AES-256-GCM or ChaCha20-Poly1305 to prevent this from happening.
+
+None of the supplementary metadata such as SSAIDs, battery optimization status, granted permissions, or installer names are encrypted or verified, so adversaries can also tamper with those and grant more permissions than desired.
+
+All of the security loopholes are planned to be addressed in later versions of cbackup.
+
+Summary:
+
+- AES-256-CTR encryption
+- PBKDF2-HMAC-SHA256 key derivation
+- No AEAD or integrity verification
+- Only data is encrypted
+
 ## Storage format
 
 The preliminary v0 storage format is currently used by the cbackup shell script.
