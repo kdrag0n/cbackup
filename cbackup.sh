@@ -243,10 +243,12 @@ function do_backup() {
             local suspended=false
             if [[ "$PREFIX" == *"com.termux"* ]] && [[ "$app" == "com.termux" ]]; then
                 dbg "Skipping app suspend for Termux because we're running inside it"
-            else
+            elif [[ "$android_version" -ge 9 ]]; then
                 dbg "Suspending app"
                 pm suspend --user 0 "$app" | expect_output 'new suspended state: true'
                 suspended=true
+            else
+                dbg "Skipping app suspend due to old Android version $android_version"
             fi
 
             # Finally, perform backup if we have files to back up
@@ -354,6 +356,7 @@ function do_restore() {
 
         # APKs
         msg "    • APK"
+        local suspended=false
         if $termux_inplace; then
             echo "Skipped because we're running in Termux"
         else
@@ -408,7 +411,12 @@ function do_restore() {
             done
 
             pm install-commit "$pm_session" | expect_output Success
-            pm suspend --user 0 "$app" | expect_output 'new suspended state: true'
+            if [[ "$android_version" -ge 9 ]]; then
+                pm suspend --user 0 "$app" | expect_output 'new suspended state: true'
+                suspended=true
+            else
+                dbg "Skipping app suspend due to old Android version $android_version"
+            fi
         fi
 
         # Get info of newly installed app
@@ -557,7 +565,8 @@ function do_restore() {
         fi
 
         # Unsuspend app now that restoration is finished
-        if ! $termux_inplace; then
+        if $suspended; then
+            dbg "Unsuspending app"
             pm unsuspend --user 0 "$app" | expect_output 'new suspended state: false'
         fi
 
