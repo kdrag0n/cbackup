@@ -514,6 +514,7 @@ function do_restore() {
             # ---------------------- DANGER DANGER DANGER ----------------------
 
             # Swap in the new one ASAP
+            # LD_PRELOAD points to a file in Termux, so we need to unset it temporarily
             dbg "Switching to new data directory"
             (unset LD_PRELOAD; /system/bin/mv "$new_data_dir" "$data_dir")
 
