@@ -354,7 +354,7 @@ function do_restore() {
         # APKs
         msg "    • APK"
         if $termux_inplace; then
-            echo "      > Skipped because we're running in Termux"
+            echo "Skipped because we're running in Termux"
         else
             # Proceed with APK installation
 
