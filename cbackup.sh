@@ -50,6 +50,9 @@ app_blacklist=(
     com.topjohnwu.magisk
 )
 
+# Select default action based on filename, because we self-replicate to restore.sh in backups
+action="${1:-$([[ "$0" == *"restore"* ]] && echo restore || echo backup)}"
+
 # Prints an error in bold red
 function err() {
     echo
@@ -574,27 +577,14 @@ function do_restore() {
     done
 }
 
-# "$1" might be unbound here, so we need to temporarily allow unbound variables
-set +u
-if [[ -z "$1" ]]; then
-    set -u
-
-    if [[ "$0" == *"restore"* ]]; then
-        do_restore
-    else
-        echo "No action specified, defaulting to backup"
-        do_backup
-    fi
+# Run action
+echo "Performing action '$action'"
+if [[ "$action" == "backup" ]]; then
+    do_backup
+elif [[ "$action" == "restore" ]]; then
+    do_restore
 else
-    set -u
-
-    if [[ "$1" == "backup" ]]; then
-        do_backup
-    elif [[ "$1" == "restore" ]]; then
-        do_restore
-    else
-        die "Unknown action '$1'"
-    fi
+    die "Unknown action '$action'"
 fi
 
 # Cleanup
