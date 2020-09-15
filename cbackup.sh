@@ -244,11 +244,27 @@ function do_backup() {
             if [[ ${#files[@]} -eq 0 ]]; then
                 echo "Skipping data backup because this app has no data"
             else
+                # Suspend app if possible
+                local suspended=false
+                if [[ "$PREFIX" == *"com.termux"* ]] && [[ "$app" == "com.termux" ]]; then
+                    dbg "Skipping app suspend for Termux because we're running inside it"
+                else
+                    dbg "Suspending app"
+                    pm suspend --user 0 "$app" > /dev/null
+                    suspended=true
+                fi
+
                 # Finally, perform backup if we have files to back up
                 tar -cf - "${files[@]}" | \
                     progress_cmd -s "${app_data_sizes[$app]}" |
                     zstd -T0 - | \
                     encrypt_to_file "$app_out/data.tar.zst.enc"
+
+                # Unsuspend the app now that data backup is done
+                if $suspended; then
+                    dbg "Unsuspending app"
+                    pm unsuspend --user 0 "$app" > /dev/null
+                fi
             fi
 
             popd > /dev/null
