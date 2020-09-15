@@ -118,6 +118,10 @@ function decrypt_file() {
     PASSWORD="$password" openssl enc -d -in "$1" "${encryption_args[@]}" -pass env:PASSWORD
 }
 
+function expect_output() {
+    grep -v "$@" || true
+}
+
 function parse_diskstats_array() {
     local diskstats="$1"
     local label="$2"
@@ -240,7 +244,7 @@ function do_backup() {
                 dbg "Skipping app suspend for Termux because we're running inside it"
             else
                 dbg "Suspending app"
-                pm suspend --user 0 "$app" > /dev/null
+                pm suspend --user 0 "$app" | expect_output 'new suspended state: true'
                 suspended=true
             fi
 
@@ -253,7 +257,7 @@ function do_backup() {
             # Unsuspend the app now that data backup is done
             if $suspended; then
                 dbg "Unsuspending app"
-                pm unsuspend --user 0 "$app" > /dev/null
+                pm unsuspend --user 0 "$app" | expect_output 'new suspended state: false'
             fi
         fi
 
@@ -360,7 +364,7 @@ function do_restore() {
             # permissions, etc.
             if grep -q "$app" <<< "$installed_apps"; then
                 dbg "Uninstalling old copy of app"
-                pm uninstall --user 0 "$app" > /dev/null
+                pm uninstall --user 0 "$app" | expect_output Success
             fi
 
             # Prepare to invoke pm install
@@ -395,11 +399,11 @@ function do_restore() {
                 split_name="$(basename "$apk")"
 
                 dbg "Writing $apk_size-byte APK $apk with split name $split_name to session $pm_session"
-                cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" > /dev/null
+                cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" | expect_output Success
             done
 
-            pm install-commit "$pm_session" > /dev/null
-            pm suspend --user 0 "$app" > /dev/null
+            pm install-commit "$pm_session" | expect_output Success
+            pm suspend --user 0 "$app" | expect_output 'new suspended state: true'
         fi
 
         # Get info of newly installed app
@@ -544,12 +548,12 @@ function do_restore() {
         # Battery optimization
         if [[ -f "$app_dir/battery_opt_disabled" ]]; then
             dbg "Whitelisting in deviceidle"
-            dumpsys deviceidle whitelist "+$app" > /dev/null
+            dumpsys deviceidle whitelist "+$app" | expect_output Added
         fi
 
         # Unsuspend app now that restoration is finished
         if ! $termux_inplace; then
-            pm unsuspend --user 0 "$app" > /dev/null
+            pm unsuspend --user 0 "$app" | expect_output 'new suspended state: false'
         fi
 
         echo
