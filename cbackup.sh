@@ -30,12 +30,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set -euo pipefail
+set -eo pipefail
 shopt -s nullglob dotglob extglob
 
 # Constants
 BACKUP_VERSION="0"
 PASSWORD_CANARY="cbackup-valid"
+COMMAND="$1"
+
+set -u
 
 # Settings
 tmp_dir="/data/local/tmp/._cbackup_tmp"
@@ -565,11 +568,7 @@ function do_restore() {
     done
 }
 
-# "$1" might be unbound here, so we need to temporarily allow unbound variables
-set +u
-if [[ -z "$1" ]]; then
-    set -u
-
+if [[ -z "$COMMAND" ]]; then
     if [[ "$0" == *"restore"* ]]; then
         do_restore
     else
@@ -577,14 +576,12 @@ if [[ -z "$1" ]]; then
         do_backup
     fi
 else
-    set -u
-
-    if [[ "$1" == "backup" ]]; then
+    if [[ "$COMAMND" == "backup" ]]; then
         do_backup
-    elif [[ "$1" == "restore" ]]; then
+    elif [[ "$COMMAND" == "restore" ]]; then
         do_restore
     else
-        die "Unknown action '$1'"
+        die "Unknown action '$COMMAND'"
     fi
 fi
 
