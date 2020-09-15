@@ -512,7 +512,7 @@ function do_restore() {
 
             # Swap in the new one ASAP
             dbg "Switching to new data directory"
-            LD_PRELOAD= /system/bin/mv "$new_data_dir" "$data_dir"
+            (unset LD_PRELOAD; /system/bin/mv "$new_data_dir" "$data_dir")
 
             # Update cwd for the new directory inode
             # Fall back to Termux HOME if cwd doesn't exist in the restored env
