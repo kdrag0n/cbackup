@@ -7,25 +7,25 @@ cbackup is a simple backup/restore script for rooted Android devices. It backs u
 Run the following command in Termux to take a backup:
 
 ```bash
-sh -c "$(curl -LSs https://git.io/cbackup-quick)"
+sh -c "$(curl -L https://git.io/cbackup-quick)"
 ```
 
 You can also specify a destination folder as an argument, which will be cleared if it already exists and created otherwise:
 
 ```bash
-sh -c "$(curl -LSs https://git.io/cbackup-quick)" backup /data/local/tmp/cbackup
+sh -c "$(curl -L https://git.io/cbackup-quick)" backup /data/local/tmp/cbackup
 ```
 
 To restore a backup located at `/sdcard/cbackup`:
 
 ```bash
-sh -c "$(curl -LSs https://git.io/cbackup-quick)" restore
+sh -c "$(curl -L https://git.io/cbackup-quick)" restore
 ```
 
 Or restore a backup from a custom location:
 
 ```bash
-sh -c "$(curl -LSs https://git.io/cbackup-quick)" restore /data/local/tmp/cbackup
+sh -c "$(curl -L https://git.io/cbackup-quick)" restore /data/local/tmp/cbackup
 ```
 
 Using a custom path outside of `/sdcard`, e.g. `/data/local/tmp/cbackup`, will work significantly faster on Android 11 and newer.
