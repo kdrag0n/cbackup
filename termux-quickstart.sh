@@ -12,7 +12,7 @@ set -ve
 pkg install -y tsu tar sed zstd openssl-tool pv curl
 
 # Download main script
-curl -O https://raw.githubusercontent.com/kdrag0n/cbackup/master/cbackup.sh
+curl -LSsO https://raw.githubusercontent.com/kdrag0n/cbackup/master/cbackup.sh
 
 # We don't use binfmt_script to here, but add the execute permission so the user can manually run it later
 chmod +x cbackup.sh
