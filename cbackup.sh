@@ -256,7 +256,7 @@ function do_backup() {
 
                 # Finally, perform backup if we have files to back up
                 tar -cf - "${files[@]}" | \
-                    progress_cmd -s "${app_data_sizes[$app]}" |
+                    progress_cmd -s "${app_data_sizes[$app]:-0}" |
                     zstd -T0 - | \
                     encrypt_to_file "$app_out/data.tar.zst.enc"
 
