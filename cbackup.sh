@@ -49,13 +49,6 @@ app_blacklist=(
     # Restoring Magisk Manager may cause problems with root access
     com.topjohnwu.magisk
 )
-# Known broken/problemtic apps to exclude data for
-app_data_blacklist=(
-    # Device-bound keystore encryption
-    ch.protonmail.android
-    org.thoughtcrime.securesms
-    com.standardnotes
-)
 
 # Prints an error in bold red
 function err() {
@@ -227,48 +220,44 @@ function do_backup() {
 
         # Data
         msg "    • Data"
-        if [[ " ${app_data_blacklist[@]} " =~ " $app " ]]; then
-            echo "Skipping data backup because this app is blacklisted"
+        pushd / > /dev/null
+
+        # Collect list of files
+        local files=(
+            # CE data for user 0
+            "data/data/$app/"!(@(cache|code_cache|no_backup)) \
+            # DE data for user 0
+            "data/user_de/0/$app/"!(@(cache|code_cache|no_backup))
+        )
+
+        # Skip backup if file list is empty
+        if [[ ${#files[@]} -eq 0 ]]; then
+            echo "Skipping data backup because this app has no data"
         else
-            pushd / > /dev/null
-
-            # Collect list of files
-            local files=(
-                # CE data for user 0
-                "data/data/$app/"!(@(cache|code_cache|no_backup)) \
-                # DE data for user 0
-                "data/user_de/0/$app/"!(@(cache|code_cache|no_backup))
-            )
-
-            # Skip backup if file list is empty
-            if [[ ${#files[@]} -eq 0 ]]; then
-                echo "Skipping data backup because this app has no data"
+            # Suspend app if possible
+            local suspended=false
+            if [[ "$PREFIX" == *"com.termux"* ]] && [[ "$app" == "com.termux" ]]; then
+                dbg "Skipping app suspend for Termux because we're running inside it"
             else
-                # Suspend app if possible
-                local suspended=false
-                if [[ "$PREFIX" == *"com.termux"* ]] && [[ "$app" == "com.termux" ]]; then
-                    dbg "Skipping app suspend for Termux because we're running inside it"
-                else
-                    dbg "Suspending app"
-                    pm suspend --user 0 "$app" > /dev/null
-                    suspended=true
-                fi
-
-                # Finally, perform backup if we have files to back up
-                tar -cf - "${files[@]}" | \
-                    progress_cmd -s "${app_data_sizes[$app]:-0}" |
-                    zstd -T0 - | \
-                    encrypt_to_file "$app_out/data.tar.zst.enc"
-
-                # Unsuspend the app now that data backup is done
-                if $suspended; then
-                    dbg "Unsuspending app"
-                    pm unsuspend --user 0 "$app" > /dev/null
-                fi
+                dbg "Suspending app"
+                pm suspend --user 0 "$app" > /dev/null
+                suspended=true
             fi
 
-            popd > /dev/null
+            # Finally, perform backup if we have files to back up
+            tar -cf - "${files[@]}" | \
+                progress_cmd -s "${app_data_sizes[$app]:-0}" |
+                zstd -T0 - | \
+                encrypt_to_file "$app_out/data.tar.zst.enc"
+
+            # Unsuspend the app now that data backup is done
+            if $suspended; then
+                dbg "Unsuspending app"
+                pm unsuspend --user 0 "$app" > /dev/null
+            fi
         fi
+
+        popd > /dev/null
 
         # Permissions
         msg "    • Other"
