@@ -578,7 +578,7 @@ function do_restore() {
     done
 }
 
-function usage() {
+function print_usage() {
     echo -n "Usage: `basename $0` <ACTION> [OPTIONS]
 
 Actions:
@@ -596,7 +596,7 @@ case $action in
             case $opt in
                 *)
                     warn "Unknown option for '$action': '$OPTARG'"
-                    usage
+                    print_usage
                     exit 1
                     ;;
             esac
@@ -609,7 +609,7 @@ case $action in
             case $opt in
                 *)
                     warn "Unknown option for '$action': '$OPTARG'"
-                    usage
+                    print_usage
                     exit 1
                     ;;
             esac
@@ -622,18 +622,18 @@ case $action in
             case $opt in
                 *)
                     warn "Unknown option for '$action': '$OPTARG'"
-                    usage
+                    print_usage
                     exit 1
                     ;;
             esac
         done
         shift $((OPTIND-1))
-        usage
+        print_usage
         exit 0
         ;;
     *)
         warn "Unknown action: '$action'"
-        usage
+        print_usage
         exit 1
         ;;
 esac
