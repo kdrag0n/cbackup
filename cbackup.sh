@@ -588,7 +588,7 @@ Actions:
 "
 }
 
-# Parse action and any additional options
+# Parse action and additional options
 OPTIND=2
 case $action in
     backup)
@@ -601,7 +601,8 @@ case $action in
                     ;;
             esac
         done
-        shift $((OPTIND-1))
+
+	shift $((OPTIND - 1))
         do_backup
         ;;
     restore)
@@ -614,7 +615,8 @@ case $action in
                     ;;
             esac
         done
-        shift $((OPTIND-1))
+
+        shift $((OPTIND - 1))
         do_restore
         ;;
     help)
@@ -627,7 +629,8 @@ case $action in
                     ;;
             esac
         done
-        shift $((OPTIND-1))
+
+        shift $((OPTIND - 1))
         print_usage
         exit 0
         ;;
