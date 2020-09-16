@@ -579,10 +579,10 @@ function do_restore() {
 }
 
 function print_usage() {
-    echo -n "Usage: `basename $0` <ACTION> [OPTIONS]
+	echo -n "Usage: $(basename "$0") <ACTION> [OPTIONS]
 
 Actions:
-  backup        Perform a system backup
+  backup        Perform a backup
   restore       Restore an existing backup
   help          Show usage
 "
