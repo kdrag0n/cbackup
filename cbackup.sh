@@ -578,15 +578,65 @@ function do_restore() {
     done
 }
 
-# Run action
-echo "Performing action '$action'"
-if [[ "$action" == "backup" ]]; then
-    do_backup
-elif [[ "$action" == "restore" ]]; then
-    do_restore
-else
-    die "Unknown action '$action'"
-fi
+function usage() {
+    echo -n "Usage: `basename $0` <ACTION> [OPTIONS]
+
+Actions:
+  backup        Perform a system backup
+  restore       Restore an existing backup
+  help          Show usage
+"
+}
+
+# Parse action and any additional options
+OPTIND=2
+case $action in
+    backup)
+        while getopts ":" opt; do
+            case $opt in
+                *)
+                    warn "Unknown option for '$action': '$OPTARG'"
+                    usage
+                    exit 1
+                    ;;
+            esac
+        done
+        shift $((OPTIND-1))
+        do_backup
+        ;;
+    restore)
+        while getopts ":" opt; do
+            case $opt in
+                *)
+                    warn "Unknown option for '$action': '$OPTARG'"
+                    usage
+                    exit 1
+                    ;;
+            esac
+        done
+        shift $((OPTIND-1))
+        do_restore
+        ;;
+    help)
+        while getopts ":" opt; do
+            case $opt in
+                *)
+                    warn "Unknown option for '$action': '$OPTARG'"
+                    usage
+                    exit 1
+                    ;;
+            esac
+        done
+        shift $((OPTIND-1))
+        usage
+        exit 0
+        ;;
+    *)
+        warn "Unknown action: '$action'"
+        usage
+        exit 1
+        ;;
+esac
 
 # Cleanup
 rm -fr "$tmp_dir"
