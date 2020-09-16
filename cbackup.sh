@@ -5,9 +5,6 @@
 # Required Termux packages: tsu tar sed zstd openssl-tool
 # Optional packages: pv
 #
-# App data backups are tarballs compressed with Zstandard and encrypted with
-# AES-256-CTR.
-#
 # Licensed under the MIT License (MIT)
 #
 # Copyright (c) 2020 Danny Lin <danny@kdrag0n.dev>
