@@ -1,12 +1,10 @@
 #!/usr/bin/env sh
 
+# cbackup Termux quickstart script
+# https://git.io/cbackup-quick
+
 # Print executed commands and exit on error
 set -ve
-
-# cbackup Termux quickstart script
-# https://git.io/JUl3K
-# Run script: sh -c "$(curl -LSs https://git.io/JUl3K)"
-# We use sh -c "$(...)" to mitigate timing attacks
 
 # Install dependencies
 pkg install -y tsu tar sed zstd openssl-tool pv curl
