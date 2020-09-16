@@ -51,7 +51,7 @@ app_blacklist=(
 )
 
 # Select default action based on filename, because we self-replicate to restore.sh in backups
-action="${1:-$([[ "$0" == *"restore"* ]] && echo restore || echo backup)}"
+action="${1:-$([[ "$0" == *"restore"* ]] && echo restore || echo help)}"
 
 # Prints an error in bold red
 function err() {
