@@ -88,11 +88,8 @@ function dbg() {
 function ask_password() {
     local confirm="$1"
 
-    # password is likely to be unbound here
-    set +u
-    if [[ -z "$password" ]]; then
-        set -u
-
+    # Fall back to an empty string to avoid unbound variable errors
+    if [[ -z "${password:-}" ]]; then
         if [[ "$confirm" == "true" ]]; then
             read -rsp "Enter password for backup: " password
             echo
@@ -109,8 +106,6 @@ function ask_password() {
             read -rsp "Enter backup password: " password
         fi
     fi
-
-    set -u
 }
 
 function encrypt_to_file() {
