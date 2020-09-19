@@ -177,7 +177,7 @@ function do_backup() {
     rm -fr "$backup_dir"
     mkdir -p "$backup_dir"
 
-    ask_password true
+    [[ -z "$password" ]] && ask_password true
 
     # Get list of user app package names
     pm list packages --user 0 > "$tmp_dir/pm_all_pkgs.list"
@@ -315,7 +315,7 @@ function do_restore() {
         apps+=("$app")
     done
 
-    ask_password false
+    [[ -z "$password" ]] && ask_password false
 
     echo "Apps to restore:"
     tr ' ' '\n' <<< "${apps[@]}"
