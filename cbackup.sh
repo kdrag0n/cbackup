@@ -582,9 +582,10 @@ function print_usage() {
 	echo -n "Usage: $(basename "$0") <ACTION> [OPTIONS]
 
 Actions:
-  backup        Perform a backup
-  restore       Restore an existing backup
-  help          Show usage
+  backup            Perform a backup
+    -b [ID]         Blocklist specific applications from being backed up, delimited by spaces
+  restore           Restore an existing backup
+  help              Show usage
 "
 }
 
@@ -592,8 +593,14 @@ Actions:
 OPTIND=2
 case $action in
     backup)
-        while getopts ":" opt; do
+        while getopts ":b:" opt; do
             case $opt in
+                b)
+                    for id in $OPTARG
+                    do
+                        app_blacklist+=("$id")
+                    done
+                    ;;
                 *)
                     warn "Unknown option for '$action': '$OPTARG'"
                     print_usage
