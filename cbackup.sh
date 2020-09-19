@@ -42,8 +42,7 @@ tmp_dir="/data/local/tmp/._cbackup_tmp"
 backup_dir="${2:-/sdcard/cbackup}"
 encryption_args=(-pbkdf2 -iter 200001 -aes-256-ctr)
 debug=false
-# WARNING: Hardcoded password FOR TESTING ONLY!
-#password="cbackup-test!"
+password=""
 # Known broken/problemtic apps to ignore entirely
 app_blacklist=(
     # Restoring Magisk Manager may cause problems with root access
@@ -88,8 +87,6 @@ function dbg() {
 function ask_password() {
     local confirm="$1"
 
-    # password is likely to be unbound here
-    set +u
     if [[ -z "$password" ]]; then
         set -u
 
@@ -109,8 +106,6 @@ function ask_password() {
             read -rsp "Enter backup password: " password
         fi
     fi
-
-    set -u
 }
 
 function encrypt_to_file() {
@@ -588,8 +583,10 @@ function print_usage() {
 Actions:
   backup            Perform a backup
     -b [ID]         Blocklist specific applications from being backed up, delimited by spaces
+    -p [PASSWORD]   Specify a password for encrypting the backup
     -k              Kill an application before backing up its data, preventing possible corruption
   restore           Restore an existing backup
+    -p [PASSWORD]   Specify a password for decrypting the backup
   help              Show usage
 "
 }
@@ -598,13 +595,16 @@ Actions:
 OPTIND=2
 case $action in
     backup)
-        while getopts ":b:k" opt; do
+        while getopts ":b:p:k" opt; do
             case $opt in
                 b)
                     for id in $OPTARG
                     do
                         app_blacklist+=("$id")
                     done
+                    ;;
+                p)
+                    password="$OPTARG"
                     ;;
                 k)
                     BACKUP_PARANOID="true"
@@ -621,8 +621,11 @@ case $action in
         do_backup
         ;;
     restore)
-        while getopts ":" opt; do
+        while getopts ":p:" opt; do
             case $opt in
+                p)
+                    password="$OPTARG"
+                    ;;
                 *)
                     warn "Unknown option for '$action': '$OPTARG'"
                     print_usage
