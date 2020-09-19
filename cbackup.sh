@@ -455,9 +455,8 @@ function do_restore() {
         # Get SELinux context from the system-created data directory
         # Parsing the output of ls is not ideal, but Termux doesn't come with any
         # tools for this.
-        # TODO: Fix the sporadic failure codes instead of silencing them with a declaration
         # shellcheck disable=SC2012
-        local secontext="$(/system/bin/ls -a1Z "$data_dir" | head -1 | cut -d' ' -f1)"
+        local secontext="$(/system/bin/ls -a1Z "$data_dir" | head -1 | cut -d' ' -f1 || true)"
         dbg "App SELinux context is $secontext"
 
         # Finally, extract the app data
