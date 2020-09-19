@@ -249,6 +249,10 @@ function do_backup() {
             elif [[ "$android_version" -ge 9 ]]; then
                 dbg "Suspending app"
                 pm suspend --user 0 "$app" | expect_output 'new suspended state: true'
+                if [[ "$BACKUP_PARANOID" == "true" ]]; then
+                dbg "Force-stopping app"
+                    am force-stop --user 0 "$app"
+                fi
                 suspended=true
             else
                 dbg "Skipping app suspend due to old Android version $android_version"
@@ -584,6 +588,7 @@ function print_usage() {
 Actions:
   backup            Perform a backup
     -b [ID]         Blocklist specific applications from being backed up, delimited by spaces
+    -k              Kill an application before backing up its data, preventing possible corruption
   restore           Restore an existing backup
   help              Show usage
 "
@@ -593,13 +598,16 @@ Actions:
 OPTIND=2
 case $action in
     backup)
-        while getopts ":b:" opt; do
+        while getopts ":b:k" opt; do
             case $opt in
                 b)
                     for id in $OPTARG
                     do
                         app_blacklist+=("$id")
                     done
+                    ;;
+                k)
+                    BACKUP_PARANOID="true"
                     ;;
                 *)
                     warn "Unknown option for '$action': '$OPTARG'"
