@@ -52,14 +52,15 @@ action="${1:-$([[ "$0" == *"restore"* ]] && echo restore || echo backup)}"
 
 # Prints an error in bold red
 function err() {
-    echo
     echo -e "\e[1;31m$*\e[0m"
-    echo
 }
 
 # Prints an error in bold red and exits the script
 function die() {
+    echo
     err "$*"
+    echo
+
     exit 1
 }
 
@@ -147,6 +148,7 @@ function get_app_data_sizes() {
 # Setup
 ssaid_restored=false
 termux_restored=false
+app_install_failed=false
 android_version="$(getprop ro.build.version.release | cut -d'.' -f1)"
 rm -fr "$tmp_dir"
 mkdir -p "$tmp_dir"
@@ -405,7 +407,14 @@ function do_restore() {
                 cat "$apk" | pm install-write -S "$apk_size" "$pm_session" "$split_name" | expect_output Success
             done
 
-            pm install-commit "$pm_session" | expect_output Success
+            pm install-commit "$pm_session" | expect_output Success || {
+                err "Installation failed; skipping app"
+                app_install_failed=true
+                echo
+
+                continue
+            }
+
             if [[ "$android_version" -ge 9 ]]; then
                 pm suspend --user 0 "$app" | expect_output 'new suspended state: true'
                 suspended=true
@@ -602,4 +611,11 @@ if [[ "$termux_restored" == "true" ]]; then
 ===================
 Please restart Termux as soon as possible to apply all changes.
 If you cannot restart now, running the 'cd' command will fix your current shell instance."
+fi
+
+if [[ "$app_install_failed" == "true" ]]; then
+    warn "One or more apps failed to install
+==================================
+Some apps failed to install, so data was not restored for them.
+You may want to check what happened in case you are expecting their data to be restored."
 fi
