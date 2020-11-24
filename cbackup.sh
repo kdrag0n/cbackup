@@ -48,7 +48,7 @@ app_blacklist=(
 )
 
 # Select default action based on filename, because we self-replicate to restore.sh in backups
-action="${1:-$([[ "$0" == *"restore"* ]] && echo restore || echo backup)}"
+action="${1:-$([[ "$0" == *"restore"* ]] && echo restore || echo help)}"
 
 # Prints an error in bold red
 function err() {
@@ -579,15 +579,68 @@ function do_restore() {
     done
 }
 
-# Run action
-echo "Performing action '$action'"
-if [[ "$action" == "backup" ]]; then
-    do_backup
-elif [[ "$action" == "restore" ]]; then
-    do_restore
-else
-    die "Unknown action '$action'"
-fi
+function print_usage() {
+	echo -n "Usage: $(basename "$0") <ACTION> [OPTIONS]
+
+Actions:
+  backup        Perform a backup
+  restore       Restore an existing backup
+  help          Show usage
+"
+}
+
+# Parse action and additional options
+OPTIND=2
+case $action in
+    backup)
+        while getopts ":" opt; do
+            case $opt in
+                *)
+                    warn "Unknown option for '$action': '$OPTARG'"
+                    print_usage
+                    exit 1
+                    ;;
+            esac
+        done
+
+	shift $((OPTIND - 1))
+        do_backup
+        ;;
+    restore)
+        while getopts ":" opt; do
+            case $opt in
+                *)
+                    warn "Unknown option for '$action': '$OPTARG'"
+                    print_usage
+                    exit 1
+                    ;;
+            esac
+        done
+
+        shift $((OPTIND - 1))
+        do_restore
+        ;;
+    help)
+        while getopts ":" opt; do
+            case $opt in
+                *)
+                    warn "Unknown option for '$action': '$OPTARG'"
+                    print_usage
+                    exit 1
+                    ;;
+            esac
+        done
+
+        shift $((OPTIND - 1))
+        print_usage
+        exit 0
+        ;;
+    *)
+        warn "Unknown action: '$action'"
+        print_usage
+        exit 1
+        ;;
+esac
 
 # Cleanup
 rm -fr "$tmp_dir"
