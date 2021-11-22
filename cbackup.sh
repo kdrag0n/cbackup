@@ -277,7 +277,7 @@ function do_backup() {
         fi
 
         # Battery optimization
-        if grep -q "$app" /data/system/deviceidle.xml; then
+        if [[ -f /data/system/deviceidle.xml ]] && grep -q "$app" /data/system/deviceidle.xml; then
             touch "$app_out/battery_opt_disabled"
         fi
 
