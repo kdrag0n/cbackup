@@ -148,6 +148,7 @@ function get_app_data_sizes() {
 # Setup
 ssaid_restored=false
 termux_restored=false
+wifi_configstore_restored=false
 app_install_failed=false
 android_version="$(getprop ro.build.version.release | cut -d'.' -f1)"
 rm -fr "$tmp_dir"
@@ -289,6 +290,18 @@ function do_backup() {
 
         echo
     done
+
+    # Wi-Fi config store
+    WIFI_CONFIGSTORE_FILE=/data/misc/wifi/WifiConfigStore.xml
+
+    if [[ "$android_version" -ge 11 ]]; then
+        WIFI_CONFIGSTORE_FILE=/data/misc/apexdata/com.android.wifi/WifiConfigStore.xml
+    fi
+
+    if [[ -f $WIFI_CONFIGSTORE_FILE ]]; then
+        msg "Backing up Wi-Fi config store"
+        cp $WIFI_CONFIGSTORE_FILE "$backup_dir/WifiConfigStore.xml"
+    fi
 
     # Copy script into backup for easy restoration
     cp "$0" "$backup_dir/restore.sh"
@@ -577,6 +590,19 @@ function do_restore() {
 
         echo
     done
+
+    # Wi-Fi config store
+    WIFI_CONFIGSTORE_FILE=/data/misc/wifi/WifiConfigStore.xml
+
+    if [[ "$android_version" -ge 11 ]]; then
+        WIFI_CONFIGSTORE_FILE=/data/misc/apexdata/com.android.wifi/WifiConfigStore.xml
+    fi
+
+    if [[ -f "$backup_dir/WifiConfigStore.xml" ]]; then
+        dbg "Restoring Wi-Fi config store"
+        cp "$backup_dir/WifiConfigStore.xml" $WIFI_CONFIGSTORE_FILE
+        wifi_configstore_restored=true
+    fi
 }
 
 # Run action
@@ -604,6 +630,12 @@ if [[ "$ssaid_restored" == "true" ]]; then
     warn "SSAIDs were restored
 ====================
 Warning: Restored SSAIDs will be lost if you do not reboot IMMEDIATELY!"
+fi
+
+if [[ "$wifi_configstore_restored" == "true" ]]; then
+    warn "Wi-Fi config store was restored
+====================
+Please restart device to apply changes."
 fi
 
 if [[ "$termux_restored" == "true" ]]; then
